@@ -1,34 +1,27 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { ConnectButton } from '@rainbow-me/rainbowkit'
+import React from 'react'
+import UserWallet from './components/UserWallet'
 import './App.css'
 
-function App() {
-  const [count, setCount] = useState(0)
-
+const App = () => {
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    <div className="app-container">
+      <header className="app-header">
+        <div className="header-content">
+          <h1 className="app-title">ZKVault</h1>
+          <p className="app-subtitle">Privacy-Preserving DeFi Swaps</p>
+          <ConnectButton />
+        </div>
+      </header>
+      
+      <main className="app-main">
+        <UserWallet />
+      </main>
+      
+      <footer className="app-footer">
+        <p>Powered by Zero-Knowledge Proofs & Self Protocol</p>
+      </footer>
+    </div>
   )
 }
 
