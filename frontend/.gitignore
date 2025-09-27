@@ -84,6 +84,8 @@ bun.lock
 bun.lock
 bun.lockb
 
+package-lock.json
+
 # Compiled circuit artifacts served by the app (ignore if you don't want to track large binaries)
 public/circuits/*
 !public/circuits/README.md
