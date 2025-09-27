@@ -27,6 +27,7 @@
     "@selfxyz/qrcode": "^1.0.15",
     "@tanstack/react-query": "^5.90.2",
     "@web3-storage/w3up-client": "^17.3.0",
+    "@synapsecns/synapse-sdk": "^1.0.0",
     "axios": "^1.12.2",
     "circomlib": "^2.0.5",
     "clsx": "^2.1.1",
