@@ -1,0 +1,91 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Circom/snarkjs intermediates
+*.r1cs
+*.sym
+*.wtns
+*.wtns.gz
+*.json.wtns
+witness.wtns
+witness.json
+input.json
+circuit.json
+
+# Trusted setup and intermediate keys
+*.ptau
+pot*.*
+powersOfTau*.*
+*_000*.zkey     # intermediate zkeys (keep only the final one if client-side proving)
+*.key
+*.zkey
+
+# Generated glue folders (keep only what's actually used by the app)
+swapEligibility_js/
+
+# Environment files (do not commit secrets)
+.env
+.env.*
+!.env.example
+
+# Coverage and test outputs
+coverage/
+.nyc_output/
+
+# Build caches
+.parcel-cache/
+.turbo/
+.cache/
+
+# OS junk files
+Thumbs.db
+ehthumbs.db
+Icon?
+
+# Local debug/temp files
+*.tmp
+*.temp
+*.bak
+*.orig
+
+bun.lock
+*.bun.lock
+./bun.lock
+./bun.lockb
+
+
+
+# Lockfiles (keep only one; comment out if you prefer committing all)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+bun.lock
+bun.lockb
+
+# Compiled circuit artifacts served by the app (ignore if you don't want to track large binaries)
+public/circuits/*
+!public/circuits/README.md
+!public/circuits/verification_key.json
+!public/circuits/swapEligibility.wasm
