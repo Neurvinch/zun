@@ -2,13 +2,11 @@ import { ethers } from 'ethers';
 
 /**
  * Airdrop Gating Service
-     * Manages airdrop campaigns and eligibility verification using a custom identity verification system
  */
 class AirdropGatingService {
     constructor() {
         this.contract = null;
         this.provider = null;
-{{ ... }}
         this.signer = null;
         this.contractAddress = import.meta.env.VITE_AIRDROP_GATING_CONTRACT_ADDRESS;
         this.initialized = false;
