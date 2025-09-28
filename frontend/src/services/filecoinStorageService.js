@@ -1,7 +1,7 @@
 import { ethers } from 'ethers';
 import { create as createIPFS } from 'kubo-rpc-client';
 import { Web3Storage } from 'web3.storage';
-import lighthouse from 'lighthouse-web3';
+import { lighthouse } from '@lighthouse-web3/sdk';
 import CryptoJS from 'crypto-js';
 
 class FilecoinStorageService {
@@ -486,22 +486,15 @@ class FilecoinStorageService {
      */
     async storeToLighthouse(dataBlob, filename) {
         try {
-            const formData = new FormData();
             const file = new File([dataBlob], filename, { type: 'application/json' });
-            formData.append('file', file);
             
-            const response = await lighthouse.upload(
-                formData,
-                this.lighthouseApiKey,
-                false, // Not a directory
-                null,  // No deal parameters
-                filename
-            );
+            // Use native Lighthouse SDK upload method
+            const uploadResponse = await lighthouse.upload(file, this.lighthouseApiKey);
             
             return {
-                cid: response.data.Hash,
+                cid: uploadResponse.data.Hash,
                 filename: filename,
-                size: response.data.Size
+                size: uploadResponse.data.Size
             };
             
         } catch (error) {
