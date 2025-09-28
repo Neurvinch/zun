@@ -1,14 +1,14 @@
 import { ethers } from 'ethers';
-import { MerkleTree } from 'merkletreejs';
 
 /**
  * Airdrop Gating Service
- * Manages airdrop campaigns and eligibility verification using Self Protocol
+     * Manages airdrop campaigns and eligibility verification using a custom identity verification system
  */
 class AirdropGatingService {
     constructor() {
         this.contract = null;
         this.provider = null;
+{{ ... }}
         this.signer = null;
         this.contractAddress = import.meta.env.VITE_AIRDROP_GATING_CONTRACT_ADDRESS;
         this.initialized = false;
@@ -55,8 +55,8 @@ class AirdropGatingService {
     async initializeContract() {
         const contractABI = [
             "function createCampaign(string memory name, string memory description, uint8 airdropType, address tokenContract, uint256 tokenId, uint256 rewardAmount, uint256 totalSupply, uint256 startTime, uint256 endTime, tuple(bool requiresHumanVerification, bool requiresAgeVerification, uint256 minimumAge, bool requiresCountryVerification, string[] allowedCountries, bool requiresKYC, bool requiresUniqueIdentity, uint256 minimumTradingVolume, uint256 minimumStakeAmount, bool requiresDataContribution) criteria, bytes32 merkleRoot) external",
-            "function checkEligibility(address user, uint256 campaignId, bytes memory selfProof, bytes32[] memory merkleProof) external view returns (bool)",
-            "function claimAirdrop(uint256 campaignId, bytes memory selfProof, bytes32[] memory merkleProof) external",
+            "function checkEligibility(address user, uint256 campaignId, bytes32[] memory merkleProof) external view returns (bool)",
+            "function claimAirdrop(uint256 campaignId, bytes32[] memory merkleProof) external",
             "function getCampaign(uint256 campaignId) external view returns (uint256, string memory, string memory, uint8, address, uint256, uint256, uint256, uint256, uint256, uint256, bool)",
             "function getUserReputation(address user) external view returns (uint256, uint256, uint256, uint256, uint256, uint256)",
             "function getUserClaimedCampaigns(address user) external view returns (uint256[] memory)",
@@ -167,11 +167,10 @@ class AirdropGatingService {
      * Check user eligibility for a campaign
      * @param {string} userAddress - User address
      * @param {string} campaignId - Campaign ID
-     * @param {Object} selfProof - Self Protocol verification proof
      * @param {Array} eligibleAddresses - List of eligible addresses for merkle proof
      * @returns {Object} Eligibility result
      */
-    async checkEligibility(userAddress, campaignId, selfProof = {}, eligibleAddresses = []) {
+    async checkEligibility(userAddress, campaignId, eligibleAddresses = []) {
         try {
             if (!this.initialized) {
                 throw new Error('Airdrop gating service not initialized');
@@ -195,17 +194,11 @@ class AirdropGatingService {
                 merkleProof = merkleTree.getHexProof(leaf);
             }
             
-            // Encode Self Protocol proof (simplified for demo)
-            const encodedSelfProof = ethers.utils.defaultAbiCoder.encode(
-                ['address', 'bool', 'uint256'],
-                [userAddress, selfProof.isVerified || false, selfProof.timestamp || Date.now()]
-            );
             
             // Check eligibility on-chain
             const isEligible = await this.contract.checkEligibility(
                 userAddress,
                 campaignId,
-                encodedSelfProof,
                 merkleProof
             );
             
@@ -240,11 +233,10 @@ class AirdropGatingService {
     /**
      * Claim airdrop reward
      * @param {string} campaignId - Campaign ID
-     * @param {Object} selfProof - Self Protocol verification proof
      * @param {Array} eligibleAddresses - List of eligible addresses for merkle proof
      * @returns {Object} Claim result
      */
-    async claimAirdrop(campaignId, selfProof = {}, eligibleAddresses = []) {
+    async claimAirdrop(campaignId, eligibleAddresses = []) {
         try {
             if (!this.initialized) {
                 throw new Error('Airdrop gating service not initialized');
@@ -260,16 +252,10 @@ class AirdropGatingService {
                 merkleProof = merkleTree.getHexProof(leaf);
             }
             
-            // Encode Self Protocol proof
-            const encodedSelfProof = ethers.utils.defaultAbiCoder.encode(
-                ['address', 'bool', 'uint256'],
-                [userAddress, selfProof.isVerified || false, selfProof.timestamp || Date.now()]
-            );
             
             // Claim airdrop
             const tx = await this.contract.claimAirdrop(
                 campaignId,
-                encodedSelfProof,
                 merkleProof
             );
             
