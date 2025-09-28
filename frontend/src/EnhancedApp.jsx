@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import NET from 'vanta/dist/vanta.net.min.js';
+import * as THREE from 'three';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useAccount, usePublicClient, useWalletClient } from 'wagmi';
 import { ethers } from 'ethers';
@@ -25,6 +27,32 @@ import AirdropDashboard from './components/airdrop/AirdropDashboard';
 import './EnhancedApp.css';
 
 const EnhancedApp = () => {
+    const vantaRef = useRef(null);
+    const [vantaEffect, setVantaEffect] = useState(0);
+
+    useEffect(() => {
+        if (!vantaEffect) {
+            setVantaEffect(NET({
+                el: vantaRef.current,
+                THREE: THREE,
+                mouseControls: true,
+                touchControls: true,
+                gyroControls: false,
+                minHeight: 200.00,
+                minWidth: 200.00,
+                scale: 1.00,
+                scaleMobile: 1.00,
+                color: 0x3f3fff,
+                backgroundColor: 0x0,
+                points: 10.00,
+                maxDistance: 25.00,
+                spacing: 20.00
+            }))
+        }
+        return () => {
+            if (vantaEffect) vantaEffect.destroy()
+        }
+    }, [vantaEffect])
     const { address, isConnected } = useAccount();
     const publicClient = usePublicClient();
     const { data: walletClient } = useWalletClient();
@@ -188,7 +216,7 @@ const EnhancedApp = () => {
     }
     
     return (
-        <div className="enhanced-app">
+        <div className="enhanced-app" ref={vantaRef}>
             {/* Mobile Menu Button */}
             <button 
                 className="mobile-menu-button"
