@@ -54,7 +54,7 @@ const App = () => {
       
       <footer className="app-footer">
         <div className="footer-content">
-          <p>Powered by Zero-Knowledge Proofs, Self Protocol, Lighthouse, Akave O3 & Synapse</p>
+          <p>Powered by Zero-Knowledge Proofs, Custom Identity Verification, Lighthouse, Akave O3 & Synapse</p>
           <div className="footer-links">
             <a href="https://github.com/zkvault/protocol" target="_blank" rel="noopener noreferrer">
               GitHub
