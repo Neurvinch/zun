@@ -1,0 +1,50 @@
+{
+  "name": "zkvault-protocol",
+  "version": "2.0.0",
+  "description": "ZKVault Protocol - Privacy-preserving DeFi with Custom Identity Verification",
+  "type": "module",
+  "scripts": {
+    "install-all": "npm install && cd frontend && npm install && cd ../backend && npm install",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "deploy:custom": "npx hardhat run scripts/deploy-custom.js",
+    "deploy:base": "npx hardhat run scripts/deploy-custom.js --network base",
+    "deploy:polygon": "npx hardhat run scripts/deploy-custom.js --network polygon",
+    "deploy:filecoin": "npx hardhat run scripts/deploy-custom.js --network filecoin",
+    "compile": "npx hardhat compile",
+    "test": "npx hardhat test",
+    "validate": "node scripts/validate-hackathon.js",
+    "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
+    "start:backend": "cd backend && npm start",
+    "start:frontend": "cd frontend && npm run preview"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "@openzeppelin/contracts": "^5.1.0",
+    "hardhat": "^2.19.2",
+    "concurrently": "^8.2.2",
+    "dotenv": "^16.3.1"
+  },
+  "dependencies": {
+    "ethers": "^6.13.4"
+  },
+  "keywords": [
+    "zkvault",
+    "privacy",
+    "defi",
+    "identity-verification",
+    "zero-knowledge",
+    "akave",
+    "lighthouse",
+    "synapse",
+    "filecoin",
+    "ipfs"
+  ],
+  "author": "ZKVault Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

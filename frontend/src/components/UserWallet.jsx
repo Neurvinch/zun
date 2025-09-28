@@ -478,24 +478,28 @@ const ERC20_ABI = [
 
     // Effects
     useEffect(() => {
-        if (isConnected && publicClient) {
+        if (isConnected && publicClient && address) {
             fetchTokenBalances();
         }
-    }, [isConnected, publicClient, fetchTokenBalances]);
+    }, [isConnected, publicClient, address, fetchTokenBalances]);
 
     useEffect(() => {
         const initServices = async () => {
             if (isConnected && address && walletClient && publicClient) {
-                await initializeZKKey();
                 try {
+                    await initializeZKKey();
                     await customIdentityService.initialize(publicClient, walletClient);
                     await checkCustomVerificationStatus();
                 } catch (error) {
-                    console.error('Failed to initialize custom identity service:', error);
+                    console.warn('Failed to initialize services:', error.message);
+                    // Don't set error state for initialization failures
                 }
             }
         };
-        initServices();
+        
+        // Add a delay to ensure wallet is fully connected
+        const timeoutId = setTimeout(initServices, 200);
+        return () => clearTimeout(timeoutId);
     }, [isConnected, address, walletClient, publicClient, initializeZKKey, checkCustomVerificationStatus]);
 
     useEffect(() => {
@@ -515,26 +519,76 @@ const ERC20_ABI = [
     return (
         <div className="wallet-container">
             <div className="wallet-header">
-                <h2>ZKVault User Wallet</h2>
-                <p className="wallet-address">Connected: {address}</p>
-                <p className="chain-info">Chain: {chain?.name}</p>
+                <div className="header-content">
+                    <div className="wallet-title">
+                        <div className="title-icon">🔐</div>
+                        <h2>ZKVault User Wallet</h2>
+                    </div>
+                    <div className="wallet-status">
+                        <div className="status-indicator connected"></div>
+                        <span className="status-text">Connected</span>
+                    </div>
+                </div>
+                <div className="wallet-info">
+                    <div className="info-item">
+                        <span className="info-label">Address:</span>
+                        <span className="wallet-address">{address?.slice(0, 6)}...{address?.slice(-4)}</span>
+                    </div>
+                    <div className="info-item">
+                        <span className="info-label">Network:</span>
+                        <span className="chain-info">{chain?.name}</span>
+                    </div>
+                </div>
             </div>
 
             {/* Token Balances */}
             <div className="balances-section">
-                <h3>Token Balances {isLoading && <span className="loading-indicator">Loading...</span>}</h3>
+                <div className="section-header">
+                    <h3>
+                        <span className="section-icon">💰</span>
+                        Token Balances
+                    </h3>
+                    {isLoading && (
+                        <div className="loading-spinner">
+                            <div className="spinner"></div>
+                            <span>Loading...</span>
+                        </div>
+                    )}
+                    <button 
+                        onClick={fetchTokenBalances} 
+                        className="refresh-btn"
+                        disabled={isLoading}
+                        title="Refresh balances"
+                    >
+                        🔄
+                    </button>
+                </div>
                 <div className="balance-grid">
                     {Object.entries(tokenBalances).map(([symbol, balance]) => {
                         const metadata = getTokenMetadata(symbol);
                         return (
                             <div key={symbol} className="balance-item">
-                                <div className="token-info">
-                                    <span className="token-icon">{metadata.icon}</span>
-                                    <span className="token-symbol">{symbol}</span>
+                                <div className="token-header">
+                                    <div className="token-info">
+                                        <span className="token-icon">{metadata.icon}</span>
+                                        <span className="token-symbol">{symbol}</span>
+                                    </div>
+                                    <div className="balance-value">
+                                        <span className="token-balance">
+                                            {balance ? parseFloat(balance.formatted).toFixed(4) : '0.0000'}
+                                        </span>
+                                        <span className="balance-label">{symbol}</span>
+                                    </div>
                                 </div>
-                                <span className="token-balance">
-                                    {balance ? balance.formatted : '0.00'}
-                                </span>
+                                <div className="balance-actions">
+                                    <button 
+                                        className="action-btn"
+                                        onClick={() => setSelectedToken(symbol)}
+                                        title={`Select ${symbol} for swap`}
+                                    >
+                                        Select
+                                    </button>
+                                </div>
                             </div>
                         );
                     })}
@@ -543,60 +597,118 @@ const ERC20_ABI = [
 
             {/* Swap Configuration */}
             <div className="swap-section">
-                <h3>Configure Swap</h3>
-                <div className="swap-inputs">
-                    <select 
-                        value={selectedToken} 
-                        onChange={(e) => setSelectedToken(e.target.value)}
-                        className="token-select"
-                    >
-                        {Object.keys(tokenBalances).map(symbol => (
-                            <option key={symbol} value={symbol}>{symbol}</option>
-                        ))}
-                    </select>
+                <div className="section-header">
+                    <h3>
+                        <span className="section-icon">🔄</span>
+                        Configure Swap
+                    </h3>
+                </div>
+                <div className="swap-form">
+                    <div className="input-group">
+                        <label className="input-label">From Token</label>
+                        <div className="select-wrapper">
+                            <select 
+                                value={selectedToken} 
+                                onChange={(e) => setSelectedToken(e.target.value)}
+                                className="token-select"
+                            >
+                                {Object.keys(tokenBalances).map(symbol => {
+                                    const metadata = getTokenMetadata(symbol);
+                                    return (
+                                        <option key={symbol} value={symbol}>
+                                            {metadata.icon} {symbol}
+                                        </option>
+                                    );
+                                })}
+                            </select>
+                            <span className="select-arrow">▼</span>
+                        </div>
+                        {selectedToken && tokenBalances[selectedToken] && (
+                            <div className="balance-info">
+                                <span>Available: {parseFloat(tokenBalances[selectedToken].formatted).toFixed(4)} {selectedToken}</span>
+                                <button 
+                                    className="max-btn"
+                                    onClick={() => setSwapAmount(tokenBalances[selectedToken].formatted)}
+                                >
+                                    MAX
+                                </button>
+                            </div>
+                        )}
+                    </div>
                     
-                    <input
-                        type="number"
-                        placeholder="Swap Amount"
-                        value={swapAmount}
-                        onChange={(e) => setSwapAmount(e.target.value)}
-                        className="amount-input"
-                    />
+                    <div className="input-group">
+                        <label className="input-label">Amount</label>
+                        <div className="amount-wrapper">
+                            <input
+                                type="number"
+                                placeholder="0.00"
+                                value={swapAmount}
+                                onChange={(e) => setSwapAmount(e.target.value)}
+                                className="amount-input"
+                                step="0.0001"
+                                min="0"
+                            />
+                            <span className="amount-currency">{selectedToken}</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             {/* Eligibility Status */}
             {eligibilityStatus && (
                 <div className={`eligibility-section ${eligibilityStatus.eligible ? 'eligible' : 'not-eligible'}`}>
-                    <h3>Eligibility Status</h3>
+                    <div className="section-header">
+                        <h3>
+                            <span className="section-icon">{eligibilityStatus.eligible ? '✅' : '⚠️'}</span>
+                            Eligibility Status
+                        </h3>
+                        <div className={`eligibility-badge ${eligibilityStatus.eligible ? 'eligible' : 'not-eligible'}`}>
+                            {eligibilityStatus.eligible ? 'ELIGIBLE' : 'NOT ELIGIBLE'}
+                        </div>
+                    </div>
                     <div className="eligibility-checks">
-                        <div className={`check ${eligibilityStatus.hasMinBalance ? 'pass' : 'fail'}`}>
-                            ✓ Minimum Balance: {eligibilityStatus.hasMinBalance ? 'Pass' : 'Fail'}
+                        <div className={`check-item ${eligibilityStatus.hasMinBalance ? 'pass' : 'fail'}`}>
+                            <div className="check-icon">
+                                {eligibilityStatus.hasMinBalance ? '✅' : '❌'}
+                            </div>
+                            <div className="check-content">
+                                <span className="check-title">Minimum Balance</span>
+                                <span className="check-status">
+                                    {eligibilityStatus.hasMinBalance ? 'Sufficient balance' : 'Insufficient balance'}
+                                </span>
+                            </div>
                         </div>
-                        <div className={`check ${eligibilityStatus.withinSwapLimits ? 'pass' : 'fail'}`}>
-                            ✓ Swap Limits: {eligibilityStatus.withinSwapLimits ? 'Pass' : 'Fail'}
+                        
+                        <div className={`check-item ${eligibilityStatus.withinSwapLimits ? 'pass' : 'fail'}`}>
+                            <div className="check-icon">
+                                {eligibilityStatus.withinSwapLimits ? '✅' : '❌'}
+                            </div>
+                            <div className="check-content">
+                                <span className="check-title">Swap Limits</span>
+                                <span className="check-status">
+                                    {eligibilityStatus.withinSwapLimits ? 'Within limits' : 'Outside limits'}
+                                </span>
+                            </div>
                         </div>
-                        <div className={`check ${eligibilityStatus.isHumanVerified ? 'pass' : 'fail'}`}>
-                            ✓ Identity Verified: {eligibilityStatus.isHumanVerified ? 'Pass' : 'Fail'}
-                            {!eligibilityStatus.isHumanVerified && (
-                                <button 
-                                    onClick={() => setShowCustomVerification(true)}
-                                    className="verify-human-btn"
-                                >
-                                    Verify Identity
-                                </button>
-                            )}
-                        </div>
-                        <div className={`check ${eligibilityStatus.isHumanVerified ? 'pass' : 'fail'}`}>
-                            ✓ Identity Verified: {eligibilityStatus.isHumanVerified ? 'Pass' : 'Fail'}
-                            {!eligibilityStatus.isHumanVerified && (
-                                <button 
-                                    onClick={() => setShowCustomVerification(true)}
-                                    className="verify-human-btn"
-                                >
-                                    Verify Identity
-                                </button>
-                            )}
+                        
+                        <div className={`check-item ${eligibilityStatus.isHumanVerified ? 'pass' : 'fail'}`}>
+                            <div className="check-icon">
+                                {eligibilityStatus.isHumanVerified ? '✅' : '❌'}
+                            </div>
+                            <div className="check-content">
+                                <span className="check-title">Identity Verification</span>
+                                <span className="check-status">
+                                    {eligibilityStatus.isHumanVerified ? 'Verified' : 'Not verified'}
+                                </span>
+                                {!eligibilityStatus.isHumanVerified && (
+                                    <button 
+                                        onClick={() => setShowCustomVerification(true)}
+                                        className="verify-human-btn"
+                                    >
+                                        🔐 Verify Identity
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -604,84 +716,129 @@ const ERC20_ABI = [
 
             {/* ZK Proof Generation */}
             <div className="proof-section">
-                <h3>Zero-Knowledge Proof</h3>
-                {zkPrivateKey && (
-                    <p className="zk-status">✓ ZK Private Key Initialized</p>
-                )}
+                <div className="section-header">
+                    <h3>
+                        <span className="section-icon">🔒</span>
+                        Zero-Knowledge Proof
+                    </h3>
+                    {zkPrivateKey && (
+                        <div className="zk-status">
+                            <span className="status-indicator success"></span>
+                            <span>ZK Key Ready</span>
+                        </div>
+                    )}
+                </div>
                 
-                <button
-                    onClick={generateSwapProof}
-                    disabled={!eligibilityStatus?.eligible || isGeneratingProof}
-                    className="generate-proof-btn"
-                >
-                    {isGeneratingProof ? 'Generating Proof...' : 'Generate ZK Proof'}
-                </button>
+                <div className="proof-controls">
+                    <button
+                        onClick={generateSwapProof}
+                        disabled={!eligibilityStatus?.eligible || isGeneratingProof}
+                        className={`generate-proof-btn ${isGeneratingProof ? 'generating' : ''}`}
+                    >
+                        {isGeneratingProof ? (
+                            <>
+                                <div className="btn-spinner"></div>
+                                Generating Proof...
+                            </>
+                        ) : (
+                            <>
+                                🔐 Generate ZK Proof
+                            </>
+                        )}
+                    </button>
+                </div>
 
                 {proofData && (
                     <div className="proof-data">
-                        <h4>Generated Proof</h4>
-                        <div className="proof-details">
-                            <p><strong>Nullifier:</strong> {proofData.nullifier}</p>
-                            <p><strong>Commitment:</strong> {proofData.commitment}</p>
-                            <p><strong>Eligible:</strong> {proofData.isEligible ? 'Yes' : 'No'}</p>
-                            <p><strong>Timestamp:</strong> {new Date(proofData.timestamp).toLocaleString()}</p>
+                        <div className="proof-header">
+                            <h4>
+                                <span className="proof-icon">🎯</span>
+                                Generated Proof
+                            </h4>
+                            <div className="proof-status success">
+                                <span className="status-indicator success"></span>
+                                <span>Valid</span>
+                            </div>
                         </div>
                         
-                        <button
-                            onClick={signMetaTransaction}
-                            className="sign-tx-btn"
-                        >
-                            Sign Meta-Transaction
-                        </button>
+                        <div className="proof-details">
+                            <div className="detail-item">
+                                <span className="detail-label">Nullifier:</span>
+                                <span className="detail-value">{proofData.nullifier?.slice(0, 10)}...{proofData.nullifier?.slice(-6)}</span>
+                            </div>
+                            <div className="detail-item">
+                                <span className="detail-label">Commitment:</span>
+                                <span className="detail-value">{proofData.commitment?.slice(0, 10)}...{proofData.commitment?.slice(-6)}</span>
+                            </div>
+                            <div className="detail-item">
+                                <span className="detail-label">Eligible:</span>
+                                <span className={`detail-value ${proofData.isEligible ? 'success' : 'error'}`}>
+                                    {proofData.isEligible ? '✅ Yes' : '❌ No'}
+                                </span>
+                            </div>
+                            <div className="detail-item">
+                                <span className="detail-label">Generated:</span>
+                                <span className="detail-value">{new Date(proofData.timestamp).toLocaleString()}</span>
+                            </div>
+                        </div>
+                        
+                        <div className="action-grid">
+                            <button
+                                onClick={signMetaTransaction}
+                                className="action-btn primary"
+                            >
+                                📝 Sign Meta-Transaction
+                            </button>
 
-                        <button
-                            onClick={() => setShowStep2(true)}
-                            className="step2-btn"
-                            disabled={!proofData}
-                        >
-                            Execute Step 2 Workflow
-                        </button>
+                            <button
+                                onClick={() => setShowStep2(true)}
+                                className="action-btn secondary"
+                                disabled={!proofData}
+                            >
+                                🔄 Execute Step 2 Workflow
+                            </button>
 
-                        <button
-                            onClick={() => {
-                                const txData = prepareGaslessTransaction();
-                                setGaslessTransactionData(txData);
-                                setShowGaslessTransaction(true);
-                            }}
-                            className="gasless-btn"
-                            disabled={!proofData || !eligibilityStatus?.eligible}
-                        >
-                            Execute Gasless Swap
-                        </button>
+                            <button
+                                onClick={() => {
+                                    const txData = prepareGaslessTransaction();
+                                    setGaslessTransactionData(txData);
+                                    setShowGaslessTransaction(true);
+                                }}
+                                className="action-btn primary"
+                                disabled={!proofData || !eligibilityStatus?.eligible}
+                            >
+                                ⚡ Execute Gasless Swap
+                            </button>
 
-                        <button
-                            onClick={() => setShowShieldedPool(true)}
-                            className="shielded-pool-btn"
-                            disabled={!eligibilityStatus?.eligible}
-                        >
-                            Open Shielded Pool
-                        </button>
+                            <button
+                                onClick={() => setShowShieldedPool(true)}
+                                className="action-btn secondary"
+                                disabled={!eligibilityStatus?.eligible}
+                            >
+                                🛡️ Open Shielded Pool
+                            </button>
 
-                        <button
-                            onClick={() => setShowOneInchSwap(true)}
-                            className="oneinch-swap-btn"
-                        >
-                            1inch Swap
-                        </button>
+                            <button
+                                onClick={() => setShowOneInchSwap(true)}
+                                className="action-btn tertiary"
+                            >
+                                🔄 1inch Swap
+                            </button>
 
-                        <button
-                            onClick={() => setShowFilecoinStorage(true)}
-                            className="filecoin-storage-btn"
-                        >
-                            Filecoin Storage
-                        </button>
+                            <button
+                                onClick={() => setShowFilecoinStorage(true)}
+                                className="action-btn tertiary"
+                            >
+                                📁 Filecoin Storage
+                            </button>
 
-                        <button
-                            onClick={() => setShowReceiptManager(true)}
-                            className="receipt-manager-btn"
-                        >
-                            Receipt Manager
-                        </button>
+                            <button
+                                onClick={() => setShowReceiptManager(true)}
+                                className="action-btn tertiary"
+                            >
+                                🧾 Receipt Manager
+                            </button>
+                        </div>
                     </div>
                 )}
             </div>
@@ -700,28 +857,25 @@ const ERC20_ABI = [
             {showCustomVerification && (
                 <div className="modal-overlay">
                     <div className="modal-content">
-                        <CustomIdentityVerification />
-                        <button onClick={() => {
-                            setShowCustomVerification(false);
-                            checkCustomVerificationStatus(); // Re-check status on close
-                        }} className="modal-close-btn">
-                            Close
-                        </button>
-                    </div>
-                </div>
-            )}
-
-            {/* Custom Identity Verification Modal */}
-            {showCustomVerification && (
-                <div className="modal-overlay">
-                    <div className="modal-content">
-                        <CustomIdentityVerification />
-                        <button onClick={() => {
-                            setShowCustomVerification(false);
-                            checkCustomVerificationStatus(); // Re-check status on close
-                        }} className="modal-close-btn">
-                            Close
-                        </button>
+                        <div className="modal-header">
+                            <h3>
+                                <span className="modal-icon">🔐</span>
+                                Identity Verification
+                            </h3>
+                            <button 
+                                onClick={() => {
+                                    setShowCustomVerification(false);
+                                    checkCustomVerificationStatus();
+                                }} 
+                                className="modal-close-btn"
+                                title="Close"
+                            >
+                                ✕
+                            </button>
+                        </div>
+                        <div className="modal-body">
+                            <CustomIdentityVerification />
+                        </div>
                     </div>
                 </div>
             )}
@@ -729,12 +883,35 @@ const ERC20_ABI = [
             {/* Step 2 Results */}
             {step2Result && (
                 <div className="step2-results">
-                    <h3>Step 2 Complete</h3>
+                    <div className="result-header">
+                        <h3>
+                            <span className="result-icon">🎉</span>
+                            Step 2 Complete
+                        </h3>
+                        <div className="result-status success">
+                            <span className="status-indicator success"></span>
+                            <span>Success</span>
+                        </div>
+                    </div>
                     <div className="step2-details">
-                        <p><strong>Proof Package:</strong> Generated ✓</p>
-                        <p><strong>Receipt Template:</strong> Prepared ✓</p>
-                        <p><strong>Verification Submitted:</strong> ✓</p>
-                        <p><strong>ZKVault Tx:</strong> {step2Result.submissionResult?.zkVaultTxHash}</p>
+                        <div className="detail-item">
+                            <span className="detail-label">Proof Package:</span>
+                            <span className="detail-value success">✅ Generated</span>
+                        </div>
+                        <div className="detail-item">
+                            <span className="detail-label">Receipt Template:</span>
+                            <span className="detail-value success">✅ Prepared</span>
+                        </div>
+                        <div className="detail-item">
+                            <span className="detail-label">Verification:</span>
+                            <span className="detail-value success">✅ Submitted</span>
+                        </div>
+                        <div className="detail-item">
+                            <span className="detail-label">ZKVault Tx:</span>
+                            <span className="detail-value tx-hash">
+                                {step2Result.submissionResult?.zkVaultTxHash?.slice(0, 10)}...{step2Result.submissionResult?.zkVaultTxHash?.slice(-6)}
+                            </span>
+                        </div>
                     </div>
                 </div>
             )}
@@ -789,14 +966,16 @@ const ERC20_ABI = [
             {/* Error Display */}
             {error && (
                 <div className="error-section">
+                    <div className="error-header">
+                        <span className="error-icon">⚠️</span>
+                        <span className="error-title">Error</span>
+                        <button onClick={() => setError(null)} className="dismiss-error" title="Dismiss">
+                            ✕
+                        </button>
+                    </div>
                     <p className="error-message">{error}</p>
-                    <button onClick={() => setError(null)} className="dismiss-error">
-                        Dismiss
-                    </button>
                 </div>
             )}
         </div>
     );
 };
-
-export default UserWallet;

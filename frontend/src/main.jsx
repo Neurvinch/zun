@@ -25,6 +25,30 @@ const config = getDefaultConfig({
   
 const queryClient = new QueryClient()
 
+// Global error handler for wallet extension errors
+if (typeof window !== 'undefined') {
+  window.addEventListener('error', (event) => {
+    const errorMessage = event.error?.message || event.message || '';
+    if (errorMessage.includes('isDefaultWallet') || 
+        errorMessage.includes('Cannot read properties of undefined')) {
+      // Prevent these wallet extension errors from showing in console
+      event.preventDefault();
+      event.stopPropagation();
+      return false;
+    }
+  });
+
+  window.addEventListener('unhandledrejection', (event) => {
+    const errorMessage = event.reason?.message || String(event.reason) || '';
+    if (errorMessage.includes('isDefaultWallet') || 
+        errorMessage.includes('Cannot read properties of undefined')) {
+      // Prevent these wallet extension errors from showing in console
+      event.preventDefault();
+      return false;
+    }
+  });
+}
+
 const theme = darkTheme({
   accentColor: '#7b3fe4',
   accentColorForeground: "white",

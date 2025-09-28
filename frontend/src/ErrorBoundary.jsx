@@ -11,8 +11,16 @@ class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    // You could send this to a logging service
-    // console.error('ErrorBoundary caught an error', error, errorInfo);
+    // Filter out wallet extension errors that don't affect functionality
+    const errorMessage = error?.message || '';
+    if (errorMessage.includes('isDefaultWallet') || 
+        errorMessage.includes('Cannot read properties of undefined')) {
+      // Don't log these specific wallet extension errors
+      this.setState({ hasError: false, error: null });
+      return;
+    }
+    
+    console.warn('ErrorBoundary caught an error', error, errorInfo);
   }
 
   render() {

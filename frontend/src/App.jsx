@@ -14,10 +14,10 @@ const App = () => {
   const tabs = [
     { id: 'wallet', label: 'Wallet & Swaps', component: UserWallet },
     { id: 'identity', label: 'Identity Verification', component: CustomIdentityVerification },
-    { id: 'synapse', label: 'Synapse Storage', component: SynapseStorage },
-    { id: 'livedata', label: 'Live Data Feeds', component: LiveDataDashboard },
-    { id: 'datadao', label: 'DataDAO', component: DataDAODashboard },
-    { id: 'analytics', label: 'Analytics', component: AnalyticsDashboard }
+    // { id: 'synapse', label: 'Synapse Storage', component: SynapseStorage },
+    // { id: 'livedata', label: 'Live Data Feeds', component: LiveDataDashboard },
+    // { id: 'datadao', label: 'DataDAO', component: DataDAODashboard },
+    // { id: 'analytics', label: 'Analytics', component: AnalyticsDashboard }
   ]
 
   const ActiveComponent = tabs.find(tab => tab.id === activeTab)?.component || UserWallet

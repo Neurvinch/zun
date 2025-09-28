@@ -30,6 +30,38 @@ const EnhancedApp = () => {
     const vantaRef = useRef(null);
     const [vantaEffect, setVantaEffect] = useState(null);
 
+    // Add wallet error handling
+    useEffect(() => {
+        const handleWalletError = (error) => {
+            console.warn('Wallet extension error (handled):', error);
+            // Suppress wallet extension errors that don't affect functionality
+        };
+
+        // Listen for wallet-related errors
+        if (typeof window !== 'undefined' && window.ethereum) {
+            window.ethereum.on('error', handleWalletError);
+            
+            // Handle specific wallet extension errors
+            const originalConsoleError = console.error;
+            console.error = (...args) => {
+                const message = args.join(' ');
+                if (message.includes('isDefaultWallet') || 
+                    message.includes('Cannot read properties of undefined')) {
+                    // Suppress these specific wallet extension errors
+                    return;
+                }
+                originalConsoleError.apply(console, args);
+            };
+
+            return () => {
+                if (window.ethereum) {
+                    window.ethereum.removeListener('error', handleWalletError);
+                }
+                console.error = originalConsoleError;
+            };
+        }
+    }, []);
+
     useEffect(() => {
         let effect = null;
         if (vantaRef.current && !vantaEffect) {
@@ -66,13 +98,20 @@ const EnhancedApp = () => {
     useEffect(() => {
         const setupEthers = async () => {
             try {
-                if (typeof window !== 'undefined' && window.ethereum) {
-                    const browserProvider = new ethers.BrowserProvider(window.ethereum);
-                    setProvider(browserProvider);
-                    try {
-                        const s = await browserProvider.getSigner();
-                        setSigner(s);
-                    } catch (e) {
+                if (typeof window !== 'undefined' && window.ethereum && isConnected) {
+                    // Add additional checks for wallet state
+                    if (window.ethereum.selectedAddress || address) {
+                        const browserProvider = new ethers.BrowserProvider(window.ethereum);
+                        setProvider(browserProvider);
+                        try {
+                            const s = await browserProvider.getSigner();
+                            setSigner(s);
+                        } catch (e) {
+                            console.warn('Failed to get signer:', e.message);
+                            setSigner(null);
+                        }
+                    } else {
+                        setProvider(null);
                         setSigner(null);
                     }
                 } else {
@@ -80,13 +119,16 @@ const EnhancedApp = () => {
                     setSigner(null);
                 }
             } catch (e) {
+                console.warn('Error setting up ethers:', e.message);
                 setProvider(null);
                 setSigner(null);
             }
         };
-        setupEthers();
-        // Re-evaluate when wallet client or connection changes
-    }, [walletClient, isConnected]);
+
+        // Add a small delay to ensure wallet state is stable
+        const timeoutId = setTimeout(setupEthers, 100);
+        return () => clearTimeout(timeoutId);
+    }, [walletClient, isConnected, address]);
     
     const [activeTab, setActiveTab] = useState('home');
     const [sidebarOpen, setSidebarOpen] = useState(false);
