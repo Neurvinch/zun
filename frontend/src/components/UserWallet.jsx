@@ -12,6 +12,7 @@ import { publicClientToProvider } from '../utils/viem-ethers-adapter';
 import ZKVaultClient from './ZKVaultClient';
 import FilecoinStorage from './FilecoinStorage';
 import ReceiptManager from './ReceiptManager';
+import OneInchSwap from './OneInchSwap';
 
 // Minimal ERC20 ABI used for balance/metadata
 const ERC20_ABI = [
@@ -19,7 +20,7 @@ const ERC20_ABI = [
   "function decimals() view returns (uint8)",
   "function symbol() view returns (string)"
 ];
- const UserWallet = () => {
+ const UserWallet = ({ provider, signer, userAddress }) => {
    const { address, isConnected, chain } = useAccount();
    const publicClient = usePublicClient();
    const { data: walletClient } = useWalletClient();
