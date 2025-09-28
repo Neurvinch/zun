@@ -4,7 +4,7 @@
 
 :root {
     --bg-color: #0a0a0a;
-    --glass-bg: rgba(20, 20, 22, 0.6);
+    --glass-bg: rgba(20, 20, 22, 0.75);
     --border-color: rgba(122, 129, 255, 0.2);
     --text-primary: #e0e0e0;
     --text-secondary: #a0a0a0;
@@ -108,8 +108,8 @@
 .sidebar {
     width: 280px;
     background: var(--glass-bg);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border-right: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
@@ -239,8 +239,8 @@
     align-items: center;
     padding: 1rem 1.5rem;
     background: var(--glass-bg);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
     border: 1px solid var(--border-color);
     border-radius: 12px;
     margin-bottom: 2rem;
@@ -275,6 +275,8 @@
 .content-wrapper {
     flex: 1;
     overflow: hidden; /* Allows content-container to scroll */
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
 }
 
 .content-container {

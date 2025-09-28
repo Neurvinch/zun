@@ -28,8 +28,6 @@ import './EnhancedApp.css';
 
 const EnhancedApp = () => {
     const vantaRef = useRef(null);
-    const [vantaEffect, setVantaEffect] = useState(null);
-
     // Add wallet error handling
     useEffect(() => {
         const handleWalletError = (error) => {
@@ -63,9 +61,9 @@ const EnhancedApp = () => {
     }, []);
 
     useEffect(() => {
-        let effect = null;
-        if (vantaRef.current && !vantaEffect) {
-            effect = NET({
+        let vantaEffect = null;
+        if (vantaRef.current) {
+            vantaEffect = NET({
                 el: vantaRef.current,
                 THREE: THREE,
                 mouseControls: true,
@@ -81,12 +79,11 @@ const EnhancedApp = () => {
                 maxDistance: 25.00,
                 spacing: 20.00
             });
-            setVantaEffect(effect);
         }
         return () => {
-            if (effect) effect.destroy();
+            if (vantaEffect) vantaEffect.destroy();
         }
-    }, [vantaEffect]);
+    }, []);
     const { address, isConnected } = useAccount();
     const publicClient = usePublicClient();
     const { data: walletClient } = useWalletClient();
