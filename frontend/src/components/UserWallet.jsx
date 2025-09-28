@@ -1,91 +1,74 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAccount } from 'wagmi';
-import { ethers } from 'ethers';
 import zkProofService from '../services/zkProofService';
-import { getSupportedTokens, getTokenMetadata, getSwapLimits } from '../config/tokens';
-import ZKVaultClient from './ZKVaultClient';
 import GaslessTransaction from './GaslessTransaction';
 import ShieldedPool from './ShieldedPool';
-import OneInchSwap from './OneInchSwap';
-import FilecoinStorage from './FilecoinStorage';
-import ReceiptManager from './ReceiptManager';
-import CustomIdentityVerification from './CustomIdentityVerification';
-import customIdentityService from '../services/customIdentityService';
 import CustomIdentityVerification from './CustomIdentityVerification';
 import customIdentityService from '../services/customIdentityService';
 import './UserWallet.css';
+import { ethers } from 'ethers';
+import { getSupportedTokens, getTokenMetadata, getSwapLimits } from '../config/tokens';
+import ZKVaultClient from './ZKVaultClient';
+import FilecoinStorage from './FilecoinStorage';
+import ReceiptManager from './ReceiptManager';
 
-// ERC20 ABI for token balance queries
+// Minimal ERC20 ABI used for balance/metadata
 const ERC20_ABI = [
-    {
-        "constant": true,
-        "inputs": [{"name": "_owner", "type": "address"}],
-        "name": "balanceOf",
-        "outputs": [{"name": "balance", "type": "uint256"}],
-        "type": "function"
-    },
-    {
-        "constant": true,
-        "inputs": [],
-        "name": "decimals",
-        "outputs": [{"name": "", "type": "uint8"}],
-        "type": "function"
-    },
-    {
-        "constant": true,
-        "inputs": [],
-        "name": "symbol",
-        "outputs": [{"name": "", "type": "string"}],
-        "type": "function"
-    }
+  "function balanceOf(address) view returns (uint256)",
+  "function decimals() view returns (uint8)",
+  "function symbol() view returns (string)"
 ];
+ const UserWallet = () => {
+   const { address, isConnected, chain } = useAccount();
 
-const UserWallet = () => {
-    const { address, isConnected, chain } = useAccount();
+   // State
+   const [provider, setProvider] = useState(null);
+   const [signer, setSigner] = useState(null);
+   const [tokenBalances, setTokenBalances] = useState({});
+   const [isLoading, setIsLoading] = useState(false);
+   const [selectedToken, setSelectedToken] = useState('ETH');
+   const [swapAmount, setSwapAmount] = useState('');
+   const [eligibilityStatus, setEligibilityStatus] = useState(null);
+   const [zkPrivateKey, setZkPrivateKey] = useState(null);
+   const [nonce, setNonce] = useState(null);
+   const [proofData, setProofData] = useState(null);
+   const [isGeneratingProof, setIsGeneratingProof] = useState(false);
+   const [showStep2, setShowStep2] = useState(false);
+   const [step2Result, setStep2Result] = useState(null);
+   const [error, setError] = useState(null);
+   const [showOneInchSwap, setShowOneInchSwap] = useState(false);
+   const [showFilecoinStorage, setShowFilecoinStorage] = useState(false);
+   const [showReceiptManager, setShowReceiptManager] = useState(false);
+   const [showShieldedPool, setShowShieldedPool] = useState(false);
+   const [showGaslessTransaction, setShowGaslessTransaction] = useState(false);
+   const [gaslessTransactionData, setGaslessTransactionData] = useState(null);
+   const [customVerificationStatus, setCustomVerificationStatus] = useState(null);
+   const [showCustomVerification, setShowCustomVerification] = useState(false);
 
-    // State management
-    const [provider, setProvider] = useState(null);
-    const [signer, setSigner] = useState(null);
-    const [tokenBalances, setTokenBalances] = useState({});
-    const [selectedToken, setSelectedToken] = useState('ETH');
-    const [swapAmount, setSwapAmount] = useState('');
-    const [isGeneratingProof, setIsGeneratingProof] = useState(false);
-    const [proofData, setProofData] = useState(null);
-    const [eligibilityStatus, setEligibilityStatus] = useState(null);
-    const [zkPrivateKey, setZkPrivateKey] = useState(null);
-    const [nonce, setNonce] = useState(null);
-    const [error, setError] = useState(null);
-    const [isLoading, setIsLoading] = useState(false);
-    const [showStep2, setShowStep2] = useState(false);
-    const [step2Result, setStep2Result] = useState(null);
-    const [showGaslessTransaction, setShowGaslessTransaction] = useState(false);
-    const [gaslessTransactionData, setGaslessTransactionData] = useState(null);
-    const [showShieldedPool, setShowShieldedPool] = useState(false);
-    const [showOneInchSwap, setShowOneInchSwap] = useState(false);
-    const [showFilecoinStorage, setShowFilecoinStorage] = useState(false);
-    const [showReceiptManager, setShowReceiptManager] = useState(false);
-    const [customVerificationStatus, setCustomVerificationStatus] = useState(null);
-    const [showCustomVerification, setShowCustomVerification] = useState(false);
-    const [customVerificationStatus, setCustomVerificationStatus] = useState(null);
-    const [showCustomVerification, setShowCustomVerification] = useState(false);
+   const checkCustomVerificationStatus = useCallback(async () => {
+     if (!address) return;
+     try {
+       const status = await customIdentityService.getUserVerificationStatus(address);
+       setCustomVerificationStatus(status);
+     } catch (_) { /* noop */ }
+   }, [address]);
 
-    // Initialize ethers provider and signer
-    const initializeProvider = useCallback(async () => {
-        if (!isConnected || !window.ethereum) return;
+   const initializeProvider = useCallback(async () => {
+     if (!isConnected || !window.ethereum) return;
 
-        try {
-            const web3Provider = new ethers.BrowserProvider(window.ethereum);
-            const web3Signer = await web3Provider.getSigner();
-            
-            setProvider(web3Provider);
-            setSigner(web3Signer);
-            
-            console.log('Ethers provider initialized');
-        } catch (error) {
-            console.error('Failed to initialize provider:', error);
-            setError('Failed to initialize wallet connection');
-        }
-    }, [isConnected]);
+     try {
+       const web3Provider = new ethers.BrowserProvider(window.ethereum);
+       const web3Signer = await web3Provider.getSigner();
+
+       setProvider(web3Provider);
+       setSigner(web3Signer);
+
+       console.log('Ethers provider initialized');
+     } catch (error) {
+       console.error('Failed to initialize provider:', error);
+       setError('Failed to initialize wallet connection');
+     }
+   }, [isConnected]);
 
     // Fetch ETH balance
     const fetchETHBalance = async () => {
@@ -225,7 +208,7 @@ const UserWallet = () => {
                 eligible,
                 hasMinBalance,
                 withinSwapLimits,
-                isHumanVerified: true, // Default to true as the check is removed
+                isHumanVerified: customVerificationStatus?.isVerified || false,
                 balance: tokenBalance.formatted,
                 swapAmount: swapAmount,
                 token: selectedToken,
@@ -342,19 +325,6 @@ const UserWallet = () => {
         setError(`Step 2 failed: ${error.message}`);
         console.error('Step 2 workflow error:', error);
     };
-
-    // Custom identity verification
-    const checkCustomVerificationStatus = useCallback(async () => {
-        if (!address || !customIdentityService.contract) return;
-
-        try {
-            const isVerified = await customIdentityService.isUserVerified(address);
-            setCustomVerificationStatus({ isVerified });
-        } catch (error) {
-            console.error('Failed to check custom verification status:', error);
-            setCustomVerificationStatus({ isVerified: false });
-        }
-    }, [address]);
 
 
     // Gasless transaction callbacks
@@ -505,6 +475,16 @@ const UserWallet = () => {
             minBalance: ethers.parseUnits(swapLimits.minBalance, tokenBalance.decimals),
             maxSwapAmount: ethers.parseUnits(swapLimits.maxSwap, tokenBalance.decimals),
             merkleRoot: '0x1234567890abcdef' // Placeholder merkle root
+        };
+    };
+
+    // Effects
+    useEffect(() => {
+        if (isConnected) {
+            initializeProvider();
+        }
+    }, [isConnected, initializeProvider]);
+
     useEffect(() => {
         if (provider) {
             fetchTokenBalances();
@@ -526,6 +506,7 @@ const UserWallet = () => {
         checkEligibility();
     }, [checkEligibility]);
 
+    // Render
     if (!isConnected) {
         return (
             <div className="wallet-container">
@@ -598,6 +579,17 @@ const UserWallet = () => {
                         </div>
                         <div className={`check ${eligibilityStatus.withinSwapLimits ? 'pass' : 'fail'}`}>
                             ✓ Swap Limits: {eligibilityStatus.withinSwapLimits ? 'Pass' : 'Fail'}
+                        </div>
+                        <div className={`check ${eligibilityStatus.isHumanVerified ? 'pass' : 'fail'}`}>
+                            ✓ Identity Verified: {eligibilityStatus.isHumanVerified ? 'Pass' : 'Fail'}
+                            {!eligibilityStatus.isHumanVerified && (
+                                <button 
+                                    onClick={() => setShowCustomVerification(true)}
+                                    className="verify-human-btn"
+                                >
+                                    Verify Identity
+                                </button>
+                            )}
                         </div>
                         <div className={`check ${eligibilityStatus.isHumanVerified ? 'pass' : 'fail'}`}>
                             ✓ Identity Verified: {eligibilityStatus.isHumanVerified ? 'Pass' : 'Fail'}
@@ -706,6 +698,21 @@ const UserWallet = () => {
                     onWorkflowComplete={handleStep2Complete}
                     onError={handleStep2Error}
                 />
+            )}
+
+            {/* Custom Identity Verification Modal */}
+            {showCustomVerification && (
+                <div className="modal-overlay">
+                    <div className="modal-content">
+                        <CustomIdentityVerification />
+                        <button onClick={() => {
+                            setShowCustomVerification(false);
+                            checkCustomVerificationStatus(); // Re-check status on close
+                        }} className="modal-close-btn">
+                            Close
+                        </button>
+                    </div>
+                </div>
             )}
 
             {/* Custom Identity Verification Modal */}
