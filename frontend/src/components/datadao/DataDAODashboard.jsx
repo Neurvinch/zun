@@ -89,30 +89,16 @@ const DataDAODashboard = () => {
     
     const handleDataContribution = async (e) => {
         e.preventDefault();
-        
         try {
             setLoading(true);
-            
-            // Parse the data (assuming JSON format)
             const parsedData = JSON.parse(dataContribution.data);
-            
-            // Generate encryption key
-            const encryptionKey = Math.random().toString(36).substring(7);
-            
-            const result = await dataDAOService.contributeData(
-                parsedData,
-                dataContribution.type,
-                encryptionKey
-            );
-            
+            const result = await dataDAOService.contributeData(dataContribution.type, parsedData);
             if (result.success) {
-                alert(`Data contributed successfully! Reward: ${result.rewardAmount} DATA`);
+                alert(`Data contributed successfully! Tx: ${result.transactionHash}`);
                 setDataContribution({ type: 'TRADING_DATA', data: '', description: '' });
-                await loadContributorStats();
             } else {
                 throw new Error(result.error);
             }
-            
         } catch (error) {
             console.error('Failed to contribute data:', error);
             alert('Failed to contribute data: ' + error.message);
@@ -121,68 +107,20 @@ const DataDAODashboard = () => {
         }
     };
     
-    const handleClaimRewards = async () => {
-        try {
-            setLoading(true);
-            
-            const result = await dataDAOService.claimRewards();
-            if (result.success) {
-                alert(`Rewards claimed successfully! Amount: ${result.amount} DATA`);
-                await loadContributorStats();
-            } else {
-                throw new Error(result.error);
-            }
-            
-        } catch (error) {
-            console.error('Failed to claim rewards:', error);
-            alert('Failed to claim rewards: ' + error.message);
-        } finally {
-            setLoading(false);
-        }
-    };
     
-    const handleStake = async (e) => {
-        e.preventDefault();
-        
-        try {
-            setLoading(true);
-            
-            const result = await dataDAOService.stakeTokens(stakeAmount);
-            if (result.success) {
-                alert(`Successfully staked ${result.amount} DATA tokens!`);
-                setStakeAmount('');
-                await loadContributorStats();
-            } else {
-                throw new Error(result.error);
-            }
-            
-        } catch (error) {
-            console.error('Failed to stake tokens:', error);
-            alert('Failed to stake tokens: ' + error.message);
-        } finally {
-            setLoading(false);
-        }
-    };
     
     const handleCreateProposal = async (e) => {
         e.preventDefault();
-        
         try {
             setLoading(true);
-            
-            const result = await dataDAOService.createProposal(
-                proposalForm.title,
-                proposalForm.description
-            );
-            
+            const result = await dataDAOService.createProposal(proposalForm.title, proposalForm.description);
             if (result.success) {
-                alert(`Proposal created successfully! ID: ${result.proposalId}`);
+                alert(`Proposal created successfully! Tx: ${result.transactionHash}`);
                 setProposalForm({ title: '', description: '' });
                 await loadProposals();
             } else {
                 throw new Error(result.error);
             }
-            
         } catch (error) {
             console.error('Failed to create proposal:', error);
             alert('Failed to create proposal: ' + error.message);

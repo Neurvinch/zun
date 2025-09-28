@@ -39,7 +39,7 @@ const AnalyticsDashboard = () => {
     const [activeTab, setActiveTab] = useState('overview');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const [akaveService, setAkaveService] = useState(null);
+    const [akaveService] = useState(() => new AkaveService());
     const [akaveStats, setAkaveStats] = useState(null);
     
     // State for analytics data
@@ -90,10 +90,6 @@ const AnalyticsDashboard = () => {
         try {
             setLoading(true);
             
-            if (!akaveService) {
-                const service = new AkaveService();
-                setAkaveService(service);
-            }
             const initResult = await akaveService.initialize();
             if (!initResult.success) {
                 throw new Error(initResult.error);
@@ -288,7 +284,7 @@ const AnalyticsDashboard = () => {
     };
     
     // Show credentials form if not initialized
-    if (!akaveService.initialized && !loading) {
+    if (!akaveService?.initialized && !loading) {
         return (
             <div className="analytics-dashboard">
                 <div className="credentials-form">
