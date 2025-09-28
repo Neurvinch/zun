@@ -1,745 +1,147 @@
+/* DataDAODashboard.css */
+
 .datadao-dashboard {
-    min-height: 100vh;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    padding: 20px;
+    background: transparent;
+    padding: 0;
     font-family: 'Inter', sans-serif;
 }
 
 .datadao-loading {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 50vh;
-    color: white;
+    color: var(--text-primary);
 }
 
 .loading-spinner {
-    width: 50px;
-    height: 50px;
-    border: 4px solid rgba(255, 255, 255, 0.3);
-    border-left: 4px solid white;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin-bottom: 20px;
+    border-left-color: var(--accent-primary);
 }
 
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-/* Header Styles */
+/* Header */
 .datadao-header {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    border-radius: 20px;
-    padding: 30px;
-    margin-bottom: 30px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.header-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 20px;
-}
-
-.title-section {
-    display: flex;
-    align-items: center;
-    gap: 20px;
+    background: transparent;
+    backdrop-filter: none;
+    border-radius: 0;
+    padding: 0;
+    margin-bottom: 2rem;
+    border: none;
 }
 
 .header-icon {
-    width: 60px;
-    height: 60px;
-    color: #4ade80;
-    background: rgba(74, 222, 128, 0.2);
-    padding: 15px;
-    border-radius: 15px;
+    color: var(--accent-primary);
+    background: rgba(122, 129, 255, 0.2);
 }
 
 .title-section h1 {
-    color: white;
-    font-size: 2.5rem;
-    font-weight: 700;
-    margin: 0;
-    background: linear-gradient(135deg, #4ade80, #22d3ee);
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
-.title-section p {
-    color: rgba(255, 255, 255, 0.8);
-    font-size: 1.1rem;
-    margin: 5px 0 0 0;
-}
-
-.stats-overview {
-    display: flex;
-    gap: 20px;
-    flex-wrap: wrap;
-}
-
 .stat-card {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    background: rgba(255, 255, 255, 0.1);
-    padding: 20px;
-    border-radius: 15px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    min-width: 180px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
 }
 
 .stat-icon {
-    width: 40px;
-    height: 40px;
-    color: #4ade80;
-    background: rgba(74, 222, 128, 0.2);
-    padding: 10px;
-    border-radius: 10px;
+    color: var(--accent-primary);
+    background: rgba(122, 129, 255, 0.2);
 }
 
-.stat-value {
-    display: block;
-    color: white;
-    font-size: 1.8rem;
-    font-weight: 700;
-}
-
-.stat-label {
-    display: block;
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 0.9rem;
-}
-
-/* Tabs Styles */
+/* Tabs */
 .datadao-tabs {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 30px;
-    flex-wrap: wrap;
+    margin-bottom: 2rem;
 }
 
 .tab-button {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.8);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    padding: 15px 25px;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 1rem;
-    font-weight: 500;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
 }
 
 .tab-button:hover {
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
-    transform: translateY(-2px);
+    background: rgba(122, 129, 255, 0.1);
+    color: var(--text-primary);
 }
 
 .tab-button.active {
-    background: linear-gradient(135deg, #4ade80, #22d3ee);
-    color: white;
-    border-color: transparent;
-    box-shadow: 0 10px 25px rgba(74, 222, 128, 0.3);
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    box-shadow: 0 0 20px var(--glow-color);
 }
 
-/* Content Styles */
+/* Content */
 .datadao-content {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(10px);
-    border-radius: 20px;
-    padding: 30px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: transparent;
+    backdrop-filter: none;
+    padding: 0;
+    border: none;
 }
 
-/* Overview Section */
-.overview-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-    gap: 30px;
+/* Cards */
+.overview-card,
+.contribute-form,
+.data-types-info,
+.proposal-form,
+.stake-form,
+.proposals-list,
+.rewards-summary,
+.rewards-info {
+    background: rgba(20, 20, 22, 0.4);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.5rem;
 }
 
-.overview-card {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 15px;
-    padding: 25px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.overview-card h3 {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: white;
-    font-size: 1.3rem;
-    margin-bottom: 20px;
+.overview-card h3,
+.contribute-form h3,
+.data-types-info h3,
+.proposal-form h3,
+.stake-form h3,
+.proposals-list h3,
+.rewards-summary h3,
+.rewards-info h3 {
+    color: var(--text-primary);
 }
 
 .card-icon {
-    width: 24px;
-    height: 24px;
-    color: #4ade80;
+    color: var(--accent-primary);
 }
 
-.dao-stats, .contributor-status {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.stat-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.9);
-}
-
-.stat-row:last-child {
-    border-bottom: none;
-}
-
-.status-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 15px;
-}
-
-.status-badge {
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-size: 0.9rem;
-    font-weight: 600;
-}
-
-.status-badge.verified {
-    background: linear-gradient(135deg, #4ade80, #22d3ee);
-    color: white;
-}
-
-.status-badge.unverified {
-    background: rgba(239, 68, 68, 0.2);
-    color: #ef4444;
-    border: 1px solid #ef4444;
-}
-
-/* Contribute Section */
-.contribute-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 30px;
-}
-
-.contribute-form, .data-types-info {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 15px;
-    padding: 25px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.contribute-form h3, .data-types-info h3 {
-    color: white;
-    font-size: 1.3rem;
-    margin-bottom: 20px;
-}
-
-.form-group {
-    margin-bottom: 20px;
-}
-
-.form-group label {
-    display: block;
-    color: rgba(255, 255, 255, 0.9);
-    font-weight: 500;
-    margin-bottom: 8px;
-}
-
+/* Forms */
 .form-group input,
 .form-group select,
 .form-group textarea {
-    width: 100%;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 10px;
-    padding: 12px 15px;
-    color: white;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-}
-
-.form-group input::placeholder,
-.form-group textarea::placeholder {
-    color: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
 }
 
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
-    outline: none;
-    border-color: #4ade80;
-    box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.2);
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px var(--glow-color);
 }
 
-.submit-button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    width: 100%;
-    background: linear-gradient(135deg, #4ade80, #22d3ee);
-    color: white;
-    border: none;
-    padding: 15px 25px;
-    border-radius: 12px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
+.submit-button,
+.claim-button,
+.vote-yes {
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
 }
 
-.submit-button:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(74, 222, 128, 0.3);
+.submit-button:hover:not(:disabled),
+.claim-button:hover:not(:disabled),
+.vote-yes:hover:not(:disabled) {
+    box-shadow: 0 0 20px var(--glow-color);
 }
 
-.submit-button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-.data-types-list {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.data-type-card {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
-    padding: 15px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.type-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-}
-
-.type-name {
-    color: white;
-    font-weight: 600;
-}
-
-.type-reward {
-    color: #4ade80;
-    font-weight: 600;
-    background: rgba(74, 222, 128, 0.2);
-    padding: 4px 8px;
-    border-radius: 6px;
-    font-size: 0.9rem;
-}
-
-.type-description {
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 0.9rem;
-}
-
-/* Governance Section */
-.governance-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 30px;
-    margin-bottom: 30px;
-}
-
-.proposal-form, .stake-form {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 15px;
-    padding: 25px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.proposal-form h3, .stake-form h3 {
-    color: white;
-    font-size: 1.3rem;
-    margin-bottom: 20px;
-}
-
-.stake-info {
-    margin-top: 20px;
-    padding-top: 20px;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.stake-info p {
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 0.9rem;
-    margin-bottom: 8px;
-}
-
-.proposals-list {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 15px;
-    padding: 25px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.proposals-list h3 {
-    color: white;
-    font-size: 1.3rem;
-    margin-bottom: 20px;
-}
-
-.proposals-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-    gap: 20px;
-}
-
+/* Proposal Card */
 .proposal-card {
     background: rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
-    padding: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.proposal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 15px;
-    gap: 15px;
-}
-
-.proposal-header h4 {
-    color: white;
-    font-size: 1.1rem;
-    margin: 0;
-    flex: 1;
-}
-
-.proposal-status {
-    padding: 6px 12px;
-    border-radius: 15px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    white-space: nowrap;
+    border: 1px solid var(--border-color);
 }
 
 .proposal-status.active {
-    background: linear-gradient(135deg, #4ade80, #22d3ee);
-    color: white;
-}
-
-.proposal-status.ended {
-    background: rgba(156, 163, 175, 0.2);
-    color: #9ca3af;
-    border: 1px solid #9ca3af;
-}
-
-.proposal-description {
-    color: rgba(255, 255, 255, 0.8);
-    font-size: 0.9rem;
-    margin-bottom: 20px;
-    line-height: 1.5;
-}
-
-.proposal-votes {
-    margin-bottom: 20px;
-}
-
-.vote-bar {
-    width: 100%;
-    height: 8px;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 4px;
-    overflow: hidden;
-    margin-bottom: 10px;
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
 }
 
 .vote-for {
-    height: 100%;
-    background: linear-gradient(135deg, #4ade80, #22d3ee);
-    transition: width 0.3s ease;
-}
-
-.vote-stats {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.9rem;
-    color: rgba(255, 255, 255, 0.7);
-}
-
-.vote-buttons {
-    display: flex;
-    gap: 10px;
-}
-
-.vote-yes, .vote-no {
-    flex: 1;
-    padding: 10px 15px;
-    border-radius: 8px;
-    border: none;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.vote-yes {
-    background: linear-gradient(135deg, #4ade80, #22d3ee);
-    color: white;
-}
-
-.vote-no {
-    background: rgba(239, 68, 68, 0.2);
-    color: #ef4444;
-    border: 1px solid #ef4444;
-}
-
-.vote-yes:hover:not(:disabled),
-.vote-no:hover:not(:disabled) {
-    transform: translateY(-1px);
-}
-
-.vote-yes:disabled,
-.vote-no:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-.no-proposals {
-    text-align: center;
-    color: rgba(255, 255, 255, 0.6);
-    font-style: italic;
-    padding: 40px;
-}
-
-/* Rewards Section */
-.rewards-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 30px;
-}
-
-.rewards-summary, .rewards-info {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 15px;
-    padding: 25px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.rewards-summary h3, .rewards-info h3 {
-    color: white;
-    font-size: 1.3rem;
-    margin-bottom: 20px;
-}
-
-.rewards-stats {
-    display: flex;
-    flex-direction: column;
-    gap: 25px;
-}
-
-.reward-card {
-    text-align: center;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
-    padding: 25px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.reward-amount {
-    font-size: 3rem;
-    font-weight: 700;
-    color: #4ade80;
-    margin-bottom: 10px;
-}
-
-.reward-label {
-    color: rgba(255, 255, 255, 0.8);
-    font-size: 1.1rem;
-    margin-bottom: 20px;
-}
-
-.claim-button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    width: 100%;
-    background: linear-gradient(135deg, #4ade80, #22d3ee);
-    color: white;
-    border: none;
-    padding: 15px 25px;
-    border-radius: 12px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.claim-button:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(74, 222, 128, 0.3);
-}
-
-.claim-button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-.reward-breakdown {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
-    padding: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.reward-breakdown h4 {
-    color: white;
-    font-size: 1.1rem;
-    margin-bottom: 15px;
-}
-
-.breakdown-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 0;
-    color: rgba(255, 255, 255, 0.8);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.breakdown-item:last-child {
-    border-bottom: none;
-}
-
-.earning-tips {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-.tip-card {
-    display: flex;
-    align-items: flex-start;
-    gap: 15px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
-    padding: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.tip-icon {
-    width: 40px;
-    height: 40px;
-    color: #4ade80;
-    background: rgba(74, 222, 128, 0.2);
-    padding: 10px;
-    border-radius: 10px;
-    flex-shrink: 0;
-}
-
-.tip-card h4 {
-    color: white;
-    font-size: 1.1rem;
-    margin: 0 0 8px 0;
-}
-
-.tip-card p {
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 0.9rem;
-    margin: 0;
-    line-height: 1.5;
-}
-
-/* Responsive Design */
-@media (max-width: 1200px) {
-    .contribute-grid,
-    .governance-grid,
-    .rewards-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-@media (max-width: 768px) {
-    .datadao-dashboard {
-        padding: 15px;
-    }
-    
-    .header-content {
-        flex-direction: column;
-        text-align: center;
-    }
-    
-    .stats-overview {
-        justify-content: center;
-    }
-    
-    .datadao-tabs {
-        justify-content: center;
-    }
-    
-    .tab-button {
-        padding: 12px 20px;
-        font-size: 0.9rem;
-    }
-    
-    .title-section h1 {
-        font-size: 2rem;
-    }
-    
-    .overview-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .proposals-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-@media (max-width: 480px) {
-    .datadao-dashboard {
-        padding: 10px;
-    }
-    
-    .datadao-header {
-        padding: 20px;
-    }
-    
-    .datadao-content {
-        padding: 20px;
-    }
-    
-    .title-section {
-        flex-direction: column;
-        gap: 15px;
-    }
-    
-    .title-section h1 {
-        font-size: 1.8rem;
-    }
-    
-    .stats-overview {
-        flex-direction: column;
-        width: 100%;
-    }
-    
-    .stat-card {
-        min-width: unset;
-    }
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
 }
