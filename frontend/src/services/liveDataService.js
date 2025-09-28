@@ -264,8 +264,7 @@ class LiveDataService {
             }
             
             if (!this.apiKeys.newsApi) {
-                // Return mock data if no API key
-                return this.getMockNewsData(query, pageSize);
+                throw new Error('News API key not configured. Please set VITE_NEWS_API_KEY environment variable.');
             }
             
             const cacheKey = `news_${query}_${pageSize}`;
@@ -637,50 +636,6 @@ class LiveDataService {
         };
     }
     
-    /**
-     * Get mock news data when API key is not available
-     * @param {string} query - Search query
-     * @param {number} pageSize - Number of articles
-     * @returns {Object} Mock news data
-     */
-    getMockNewsData(query, pageSize) {
-        const mockArticles = [
-            {
-                title: "Bitcoin Reaches New All-Time High Amid Institutional Adoption",
-                description: "Major financial institutions continue to embrace cryptocurrency as Bitcoin surges to unprecedented levels.",
-                source: { name: "Crypto News" },
-                publishedAt: new Date(Date.now() - 3600000).toISOString(),
-                url: "https://example.com/bitcoin-ath"
-            },
-            {
-                title: "Ethereum 2.0 Staking Rewards Attract More Validators",
-                description: "The Ethereum network sees increased participation as staking rewards incentivize more validators to join.",
-                source: { name: "DeFi Today" },
-                publishedAt: new Date(Date.now() - 7200000).toISOString(),
-                url: "https://example.com/eth2-staking"
-            }
-        ];
-        
-        const sentiment = this.analyzeSentiment(mockArticles);
-        
-        return {
-            success: true,
-            source: 'Mock News Data',
-            timestamp: Date.now(),
-            data: {
-                articles: mockArticles.slice(0, pageSize),
-                totalResults: mockArticles.length,
-                sentiment
-            },
-            proof: { mock: true, timestamp: Date.now() },
-            validation: { valid: true, mock: true },
-            metadata: {
-                query,
-                pageSize,
-                note: 'Mock data used due to missing API key'
-            }
-        };
-    }
     
     /**
      * Get all cached data
