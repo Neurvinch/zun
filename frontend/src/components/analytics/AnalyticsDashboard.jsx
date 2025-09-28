@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { useAccount } from 'wagmi';
+import AkaveService from '../../services/akaveService';
+import './AnalyticsDashboard.css';
 import { 
     BarChart, 
     Bar, 
@@ -29,13 +31,16 @@ import {
     FileText,
     Cloud
 } from 'lucide-react';
-import AkaveService from '../../services/analytics/akaveService';
 import './AnalyticsDashboard.css';
 
-const AnalyticsDashboard = ({ userAddress }) => {
-    const [akaveService] = useState(() => new AkaveService());
-    const [loading, setLoading] = useState(true);
+const AnalyticsDashboard = () => {
+    const { address, isConnected } = useAccount();
+    
     const [activeTab, setActiveTab] = useState('overview');
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [akaveService, setAkaveService] = useState(null);
+    const [akaveStats, setAkaveStats] = useState(null);
     
     // State for analytics data
     const [storageStats, setStorageStats] = useState(null);
@@ -85,7 +90,11 @@ const AnalyticsDashboard = ({ userAddress }) => {
         try {
             setLoading(true);
             
-            const initResult = await akaveService.initialize(accessKeyId, secretAccessKey);
+            if (!akaveService) {
+                const service = new AkaveService();
+                setAkaveService(service);
+            }
+            const initResult = await akaveService.initialize();
             if (!initResult.success) {
                 throw new Error(initResult.error);
             }
