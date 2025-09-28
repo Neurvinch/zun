@@ -28,11 +28,12 @@ import './EnhancedApp.css';
 
 const EnhancedApp = () => {
     const vantaRef = useRef(null);
-    const [vantaEffect, setVantaEffect] = useState(0);
+    const [vantaEffect, setVantaEffect] = useState(null);
 
     useEffect(() => {
-        if (!vantaEffect) {
-            setVantaEffect(NET({
+        let effect = null;
+        if (vantaRef.current && !vantaEffect) {
+            effect = NET({
                 el: vantaRef.current,
                 THREE: THREE,
                 mouseControls: true,
@@ -47,12 +48,13 @@ const EnhancedApp = () => {
                 points: 10.00,
                 maxDistance: 25.00,
                 spacing: 20.00
-            }))
+            });
+            setVantaEffect(effect);
         }
         return () => {
-            if (vantaEffect) vantaEffect.destroy()
+            if (effect) effect.destroy();
         }
-    }, [vantaEffect])
+    }, [vantaEffect]);
     const { address, isConnected } = useAccount();
     const publicClient = usePublicClient();
     const { data: walletClient } = useWalletClient();
