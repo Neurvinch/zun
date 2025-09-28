@@ -12,11 +12,14 @@ import {
     Upload,
     Download
 } from 'lucide-react';
-import DataDAOService from '../../services/datadao/dataDAOService';
+import { useAccount, usePublicClient, useWalletClient } from 'wagmi';
+import dataDAOService from '../../services/dataDAOService';
 import './DataDAODashboard.css';
 
-const DataDAODashboard = ({ provider, signer, userAddress }) => {
-    const [dataDAOService] = useState(() => new DataDAOService());
+const DataDAODashboard = () => {
+    const { address: userAddress } = useAccount();
+    const publicClient = usePublicClient();
+    const { data: walletClient } = useWalletClient();
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('overview');
     
@@ -47,27 +50,23 @@ const DataDAODashboard = ({ provider, signer, userAddress }) => {
     ];
     
     useEffect(() => {
-        if (provider && signer && userAddress) {
+        if (publicClient && walletClient && userAddress) {
             initializeDataDAO();
         }
-    }, [provider, signer, userAddress]);
+    }, [publicClient, walletClient, userAddress]);
     
     const initializeDataDAO = async () => {
         try {
             setLoading(true);
             
             // Initialize DataDAO service
-            const initResult = await dataDAOService.initialize(provider, signer);
+            const initResult = await dataDAOService.initialize(publicClient, walletClient);
             if (!initResult.success) {
                 throw new Error(initResult.error);
             }
             
             // Load initial data
-            await Promise.all([
-                loadContributorStats(),
-                loadDAOStats(),
-                loadProposals()
-            ]);
+            await loadProposals();
             
         } catch (error) {
             console.error('Failed to initialize DataDAO:', error);
@@ -76,27 +75,6 @@ const DataDAODashboard = ({ provider, signer, userAddress }) => {
         }
     };
     
-    const loadContributorStats = async () => {
-        try {
-            const result = await dataDAOService.getContributorStats(userAddress);
-            if (result.success) {
-                setContributorStats(result.stats);
-            }
-        } catch (error) {
-            console.error('Failed to load contributor stats:', error);
-        }
-    };
-    
-    const loadDAOStats = async () => {
-        try {
-            const result = await dataDAOService.getDAOStats();
-            if (result.success) {
-                setDAOStats(result.stats);
-            }
-        } catch (error) {
-            console.error('Failed to load DAO stats:', error);
-        }
-    };
     
     const loadProposals = async () => {
         try {
@@ -259,7 +237,7 @@ const DataDAODashboard = ({ provider, signer, userAddress }) => {
                         </div>
                     </div>
                     
-                    {contributorStats && (
+                    {/* {contributorStats && (
                         <div className="stats-overview">
                             <div className="stat-card">
                                 <Coins className="stat-icon" />
@@ -283,7 +261,7 @@ const DataDAODashboard = ({ provider, signer, userAddress }) => {
                                 </div>
                             </div>
                         </div>
-                    )}
+                    )} */}
                 </div>
             </motion.div>
             
@@ -329,7 +307,7 @@ const DataDAODashboard = ({ provider, signer, userAddress }) => {
                         <div className="overview-grid">
                             <div className="overview-card">
                                 <h3><Users className="card-icon" /> DAO Statistics</h3>
-                                {daoStats && (
+                                {/* {daoStats && (
                                     <div className="dao-stats">
                                         <div className="stat-row">
                                             <span>Total Contributions:</span>
@@ -344,12 +322,12 @@ const DataDAODashboard = ({ provider, signer, userAddress }) => {
                                             <span>{daoStats.totalDataCoins}</span>
                                         </div>
                                     </div>
-                                )}
+                                )} */}
                             </div>
                             
                             <div className="overview-card">
                                 <h3><Shield className="card-icon" /> Your Status</h3>
-                                {contributorStats && (
+                                {/* {contributorStats && (
                                     <div className="contributor-status">
                                         <div className="status-item">
                                             <span className={`status-badge ${contributorStats.isVerified ? 'verified' : 'unverified'}`}>
@@ -365,7 +343,7 @@ const DataDAODashboard = ({ provider, signer, userAddress }) => {
                                             <span>{contributorStats.totalRewards} DATA</span>
                                         </div>
                                     </div>
-                                )}
+                                )} */}
                             </div>
                         </div>
                     </motion.div>
@@ -609,7 +587,7 @@ const DataDAODashboard = ({ provider, signer, userAddress }) => {
                         <div className="rewards-grid">
                             <div className="rewards-summary">
                                 <h3>Rewards Summary</h3>
-                                {contributorStats && (
+                                {/* {contributorStats && (
                                     <div className="rewards-stats">
                                         <div className="reward-card">
                                             <div className="reward-amount">
@@ -638,7 +616,7 @@ const DataDAODashboard = ({ provider, signer, userAddress }) => {
                                             </div>
                                         </div>
                                     </div>
-                                )}
+                                )} */}
                             </div>
                             
                             <div className="rewards-info">
