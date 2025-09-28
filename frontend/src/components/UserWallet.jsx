@@ -9,6 +9,10 @@ import ShieldedPool from './ShieldedPool';
 import OneInchSwap from './OneInchSwap';
 import FilecoinStorage from './FilecoinStorage';
 import ReceiptManager from './ReceiptManager';
+import CustomIdentityVerification from './CustomIdentityVerification';
+import customIdentityService from '../services/customIdentityService';
+import CustomIdentityVerification from './CustomIdentityVerification';
+import customIdentityService from '../services/customIdentityService';
 import './UserWallet.css';
 
 // ERC20 ABI for token balance queries
@@ -60,6 +64,10 @@ const UserWallet = () => {
     const [showOneInchSwap, setShowOneInchSwap] = useState(false);
     const [showFilecoinStorage, setShowFilecoinStorage] = useState(false);
     const [showReceiptManager, setShowReceiptManager] = useState(false);
+    const [customVerificationStatus, setCustomVerificationStatus] = useState(null);
+    const [showCustomVerification, setShowCustomVerification] = useState(false);
+    const [customVerificationStatus, setCustomVerificationStatus] = useState(null);
+    const [showCustomVerification, setShowCustomVerification] = useState(false);
 
     // Initialize ethers provider and signer
     const initializeProvider = useCallback(async () => {
@@ -209,7 +217,9 @@ const UserWallet = () => {
             // Check basic eligibility
             const hasMinBalance = tokenBalance.value >= minBalanceWei + swapAmountWei;
             const withinSwapLimits = swapAmountWei <= maxSwapAmountWei && swapAmountWei >= minSwapAmountWei;
-            const eligible = hasMinBalance && withinSwapLimits;
+            const isHumanVerified = customVerificationStatus?.isVerified || false;
+
+            const eligible = hasMinBalance && withinSwapLimits && isHumanVerified;
 
             setEligibilityStatus({
                 eligible,
@@ -332,6 +342,19 @@ const UserWallet = () => {
         setError(`Step 2 failed: ${error.message}`);
         console.error('Step 2 workflow error:', error);
     };
+
+    // Custom identity verification
+    const checkCustomVerificationStatus = useCallback(async () => {
+        if (!address || !customIdentityService.contract) return;
+
+        try {
+            const isVerified = await customIdentityService.isUserVerified(address);
+            setCustomVerificationStatus({ isVerified });
+        } catch (error) {
+            console.error('Failed to check custom verification status:', error);
+            setCustomVerificationStatus({ isVerified: false });
+        }
+    }, [address]);
 
 
     // Gasless transaction callbacks
@@ -482,16 +505,6 @@ const UserWallet = () => {
             minBalance: ethers.parseUnits(swapLimits.minBalance, tokenBalance.decimals),
             maxSwapAmount: ethers.parseUnits(swapLimits.maxSwap, tokenBalance.decimals),
             merkleRoot: '0x1234567890abcdef' // Placeholder merkle root
-        };
-    };
-
-    // Effects
-    useEffect(() => {
-        if (isConnected) {
-            initializeProvider();
-        }
-    }, [isConnected, initializeProvider]);
-
     useEffect(() => {
         if (provider) {
             fetchTokenBalances();
@@ -499,10 +512,15 @@ const UserWallet = () => {
     }, [provider, fetchTokenBalances]);
 
     useEffect(() => {
-        if (isConnected && address && signer) {
-            initializeZKKey();
-        }
-    }, [isConnected, address, signer, initializeZKKey]);
+        const initServices = async () => {
+            if (isConnected && address && signer && provider) {
+                await initializeZKKey();
+                await customIdentityService.initialize(provider, signer);
+                await checkCustomVerificationStatus();
+            }
+        };
+        initServices();
+    }, [isConnected, address, signer, provider, initializeZKKey, checkCustomVerificationStatus]);
 
     useEffect(() => {
         checkEligibility();
@@ -580,6 +598,17 @@ const UserWallet = () => {
                         </div>
                         <div className={`check ${eligibilityStatus.withinSwapLimits ? 'pass' : 'fail'}`}>
                             ✓ Swap Limits: {eligibilityStatus.withinSwapLimits ? 'Pass' : 'Fail'}
+                        </div>
+                        <div className={`check ${eligibilityStatus.isHumanVerified ? 'pass' : 'fail'}`}>
+                            ✓ Identity Verified: {eligibilityStatus.isHumanVerified ? 'Pass' : 'Fail'}
+                            {!eligibilityStatus.isHumanVerified && (
+                                <button 
+                                    onClick={() => setShowCustomVerification(true)}
+                                    className="verify-human-btn"
+                                >
+                                    Verify Identity
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -677,6 +706,21 @@ const UserWallet = () => {
                     onWorkflowComplete={handleStep2Complete}
                     onError={handleStep2Error}
                 />
+            )}
+
+            {/* Custom Identity Verification Modal */}
+            {showCustomVerification && (
+                <div className="modal-overlay">
+                    <div className="modal-content">
+                        <CustomIdentityVerification />
+                        <button onClick={() => {
+                            setShowCustomVerification(false);
+                            checkCustomVerificationStatus(); // Re-check status on close
+                        }} className="modal-close-btn">
+                            Close
+                        </button>
+                    </div>
+                </div>
             )}
 
             {/* Step 2 Results */}
