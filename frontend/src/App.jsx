@@ -5,6 +5,7 @@ import SynapseStorage from './components/SynapseStorage'
 import LiveDataDashboard from './components/LiveDataDashboard'
 import DataDAODashboard from './components/datadao/DataDAODashboard'
 import AnalyticsDashboard from './components/analytics/AnalyticsDashboard'
+import CustomIdentityVerification from './components/CustomIdentityVerification'
 import './App.css'
 
 const App = () => {
@@ -12,6 +13,7 @@ const App = () => {
 
   const tabs = [
     { id: 'wallet', label: 'Wallet & Swaps', component: UserWallet },
+    { id: 'identity', label: 'Identity Verification', component: CustomIdentityVerification },
     { id: 'synapse', label: 'Synapse Storage', component: SynapseStorage },
     { id: 'livedata', label: 'Live Data Feeds', component: LiveDataDashboard },
     { id: 'datadao', label: 'DataDAO', component: DataDAODashboard },
