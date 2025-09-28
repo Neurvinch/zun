@@ -979,3 +979,5 @@ const ERC20_ABI = [
         </div>
     );
 };
+
+export default UserWallet;
