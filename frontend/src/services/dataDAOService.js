@@ -59,43 +59,25 @@ class DataDAOService {
     /**
      * Submit data contribution
      */
-    async contributeData(dataType, data, userAddress) {
+    async contributeData(dataType, data) {
         try {
-            if (!this.initialized) {
-                await this.initialize();
-            }
-            
-            // Upload data to Lighthouse
+            if (!this.initialized) throw new Error('Service not initialized');
+
+            // 1. Upload data to Lighthouse to get a data hash
             const uploadResult = await this.uploadDataToLighthouse(data, dataType);
-            
             if (!uploadResult.success) {
-                throw new Error('Failed to upload data to IPFS');
+                throw new Error(uploadResult.error || 'Failed to upload data to IPFS');
             }
-            
-            // Create contribution record
-            const contributionId = Date.now().toString();
-            const contribution = {
-                id: contributionId,
-                contributor: userAddress,
-                dataType,
-                dataHash: uploadResult.hash,
-                rewardAmount: this.calculateReward(dataType, data),
-                timestamp: Date.now(),
-                status: 'pending'
-            };
-            
-            this.dataContributions.set(contributionId, contribution);
-            
-            // Update user stats
-            this.updateUserStats(userAddress, contribution);
-            
+
+            // 2. Call the smart contract to record the contribution
+            const tx = await this.contract.contributeData(dataType, uploadResult.hash);
+            const receipt = await tx.wait();
+
             return {
                 success: true,
-                contributionId,
-                dataHash: uploadResult.hash,
-                estimatedReward: contribution.rewardAmount
+                transactionHash: receipt.transactionHash,
+                dataHash: uploadResult.hash
             };
-            
         } catch (error) {
             console.error('Data contribution failed:', error);
             return { success: false, error: error.message };
