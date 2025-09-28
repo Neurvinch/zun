@@ -12,13 +12,13 @@
 
 .wallet-header {
     text-align: center;
-    margin-bottom: 2rem;
-    padding-bottom: 1.5rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
     border-bottom: 1px solid var(--border-color);
 }
 
 .wallet-header h2 {
-    font-size: 1.75rem;
+    font-size: 1.5rem;
     font-weight: 600;
     margin: 0 0 0.5rem 0;
     background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
@@ -30,6 +30,7 @@
 .wallet-address,
 .chain-info {
     color: var(--text-secondary);
+    font-size: 0.9rem;
 }
 
 /* General Section Styling */
@@ -37,11 +38,11 @@
 .swap-section,
 .eligibility-section,
 .proof-section {
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
     background: rgba(20, 20, 22, 0.4);
     border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 1.5rem;
+    border-radius: 10px;
+    padding: 1.25rem;
     backdrop-filter: blur(5px);
 }
 
@@ -49,24 +50,24 @@
 .swap-section h3,
 .eligibility-section h3,
 .proof-section h3 {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
     font-weight: 600;
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem;
     color: var(--text-primary);
 }
 
 /* Balances */
 .balance-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.75rem;
 }
 
 .balance-item {
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 1rem;
+    border-radius: 6px;
+    padding: 0.75rem;
     transition: all 0.3s ease;
 }
 
@@ -78,11 +79,13 @@
 
 .token-symbol {
     color: var(--text-primary);
+    font-size: 0.9rem;
 }
 
 .token-balance {
     color: var(--accent-primary);
     font-weight: 600;
+    font-size: 1rem;
 }
 
 /* Swap Inputs */
@@ -90,9 +93,10 @@
 .amount-input {
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    padding: 0.6rem 0.8rem;
     color: var(--text-primary);
+    font-size: 0.9rem;
 }
 
 .token-select:focus,
@@ -105,14 +109,6 @@
 .token-select option {
     background: var(--bg-color);
     color: var(--text-primary);
-}
-
-/* Eligibility Section */
-.eligibility-section {
-    margin-bottom: 32px;
-    padding: 20px;
-    border-radius: 12px;
-    border: 2px solid;
 }
 
 /* Eligibility Section */
@@ -146,14 +142,14 @@
 .verify-human-btn {
     background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
     border: none;
-    border-radius: 8px;
-    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    padding: 0.6rem 1.2rem;
     color: #fff;
-    font-size: 1rem;
+    font-size: 0.9rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
-    margin: 0.5rem 0.5rem 0.5rem 0;
+    margin: 0.25rem 0.25rem 0.25rem 0;
 }
 
 .generate-proof-btn:hover:not(:disabled),
@@ -166,7 +162,7 @@
 .receipt-manager-btn:hover:not(:disabled),
 .verify-human-btn:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px var(--glow-color);
+    box-shadow: 0 6px 20px var(--glow-color);
 }
 
 .generate-proof-btn:disabled,
@@ -190,9 +186,10 @@
 .human-verification-status {
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 1rem;
-    margin-top: 1rem;
+    border-radius: 6px;
+    padding: 0.75rem;
+    margin-top: 0.75rem;
+    font-size: 0.9rem;
 }
 
 .proof-details p,
@@ -208,33 +205,35 @@
 }
 
 .step2-results {
-    border-left: 4px solid #4ade80;
+    border-left: 3px solid #4ade80;
 }
 
 .human-verification-status {
-    border-left: 4px solid var(--accent-primary);
+    border-left: 3px solid var(--accent-primary);
 }
 
 /* Error Section */
 .error-section {
     background: rgba(239, 68, 68, 0.1);
     border: 1px solid rgba(239, 68, 68, 0.3);
-    border-radius: 8px;
-    padding: 1rem;
-    margin-top: 1rem;
+    border-radius: 6px;
+    padding: 0.75rem;
+    margin-top: 0.75rem;
 }
 
 .error-message {
     color: #ef4444;
+    font-size: 0.9rem;
 }
 
 .dismiss-error {
     background: transparent;
     border: 1px solid rgba(239, 68, 68, 0.5);
     border-radius: 4px;
-    padding: 0.25rem 0.75rem;
+    padding: 0.2rem 0.6rem;
     color: #ef4444;
     cursor: pointer;
+    font-size: 0.8rem;
 }
 
 /* Responsive */
