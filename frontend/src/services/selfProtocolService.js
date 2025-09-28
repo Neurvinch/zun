@@ -46,6 +46,7 @@ class SelfProtocolService {
         this.isInitialized = false;
         this.currentChainId = null;
         this.currentUserAddress = null;
+        this.CELO_TESTNET_CHAIN_ID = 44787; // Celo Sepolia testnet only
     }
 
     /**
@@ -57,12 +58,24 @@ class SelfProtocolService {
      */
     async initialize(provider, chainId, contractAddress, userAddress) {
         try {
-            if (!contractAddress || contractAddress === '0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0') {
+            if (!contractAddress || contractAddress === '0x0000000000000000000000000000000000000000') {
                 console.warn('ProofOfHuman contract not deployed on this chain');
                 return false;
             }
 
             // Initialize ProofOfHuman contract
+            // Ensure the address has code deployed to avoid BAD_DATA decode errors
+            try {
+                const code = await provider.getCode(contractAddress);
+                if (!code || code === '0x') {
+                    console.warn(`No contract code found at ${contractAddress} on chain ${chainId}`);
+                    return false;
+                }
+            } catch (codeErr) {
+                console.error('Failed to fetch contract code:', codeErr);
+                return false;
+            }
+
             const contract = new ethers.Contract(contractAddress, PROOF_OF_HUMAN_ABI, provider);
             this.contracts.set(chainId, contract);
             
@@ -139,7 +152,23 @@ class SelfProtocolService {
             }
 
             // Check if user is verified in the ProofOfHuman contract
-            const isVerified = await contract.verifiedHumans(userAddress);
+            let isVerified = false;
+            try {
+                isVerified = await contract.verifiedHumans(userAddress);
+            } catch (callErr) {
+                // Provide clearer diagnostics for BAD_DATA (likely no contract at address or ABI mismatch)
+                const addr = contract.target?.toString?.() || 'unknown';
+                console.error(`verifiedHumans() call failed on ${addr} (chain ${chainId}):`, callErr);
+                return {
+                    isVerified: false,
+                    error: `Verification read failed at ${addr} on chain ${chainId}. Ensure the ProofOfHuman contract is deployed and the address is correct. (${callErr.code || 'CALL_ERROR'})`,
+                    timestamp: 0,
+                    score: 0,
+                    userAddress: userAddress.toLowerCase(),
+                    chainId,
+                    lastChecked: Date.now()
+                };
+            }
 
             const result = {
                 isVerified,
@@ -237,8 +266,21 @@ class SelfProtocolService {
                 throw new Error('Self Protocol app not initialized for this chain');
             }
 
-            // Generate verification URL using Self SDK
-            const verificationUrl = await selfApp.generateVerificationUrl();
+            // Generate verification URL using Self SDK (support multiple SDK method names)
+            let verificationUrl;
+            if (typeof selfApp.generateVerificationUrl === 'function') {
+                verificationUrl = await selfApp.generateVerificationUrl();
+            } else if (typeof selfApp.getVerificationUrl === 'function') {
+                verificationUrl = await selfApp.getVerificationUrl();
+            } else if (typeof selfApp.generateUrl === 'function') {
+                verificationUrl = await selfApp.generateUrl();
+            } else if (typeof selfApp.getUrl === 'function') {
+                verificationUrl = await selfApp.getUrl();
+            } else if (typeof selfApp.url === 'string') {
+                verificationUrl = selfApp.url;
+            } else {
+                throw new Error('No compatible method to generate verification URL found in Self SDK instance');
+            }
             
             console.log('Self Protocol verification URL generated:', verificationUrl);
             
