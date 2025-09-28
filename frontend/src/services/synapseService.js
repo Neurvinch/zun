@@ -1,24 +1,25 @@
+import { Synapse, RPC_URLS, TOKENS, CONTRACT_ADDRESSES } from '@filoz/synapse-sdk';
 import { ethers } from 'ethers';
-import axios from 'axios';
 
 /**
  * Synapse SDK Service
- * Provides Filecoin warm storage and USDFC payment integration
+ * Provides Filecoin warm storage and USDFC payment integration using native Synapse SDK
  */
 class SynapseService {
     constructor() {
         this.initialized = false;
+        this.synapse = null;
         this.provider = null;
-        this.signer = null;
-        this.synapseClient = null;
         
-        // Synapse configuration
+        // Synapse SDK configuration
         this.config = {
-            apiUrl: import.meta.env.VITE_SYNAPSE_API_URL || 'https://api.synapse.org',
-            apiKey: import.meta.env.VITE_SYNAPSE_API_KEY,
-            filecoinNetwork: 'calibration', // calibration testnet
-            usdcfContract: import.meta.env.VITE_USDCF_CONTRACT_ADDRESS,
-            warmStorageEndpoint: import.meta.env.VITE_SYNAPSE_STORAGE_ENDPOINT || 'https://warm.synapse.org'
+            privateKey: import.meta.env.VITE_SYNAPSE_PRIVATE_KEY,
+            rpcUrl: import.meta.env.VITE_SYNAPSE_RPC_URL || RPC_URLS.calibration.websocket,
+            network: 'calibration', // Use calibration testnet
+            usdcfAmount: ethers.parseUnits('100', 18), // Default deposit amount
+            approvalAmount: ethers.parseUnits('10', 18), // Rate allowance per epoch
+            lockupAmount: ethers.parseUnits('1000', 18), // Total lockup allowance
+            maxLockupPeriod: 86400n * 30n // 30 days in epochs
         };
         
         // Storage categories for organization
@@ -35,130 +36,324 @@ class SynapseService {
         this.paymentTypes = {
             STORAGE_FEE: 'storage_fee',
             RETRIEVAL_FEE: 'retrieval_fee',
-            SUBSCRIPTION: 'subscription',
             GAS_REFUND: 'gas_refund'
         };
     }
     
     /**
-     * Initialize Synapse service
-     * @param {Object} provider - Ethereum provider
-     * @param {Object} signer - Ethereum signer
+     * Initialize Synapse SDK
+     * @param {Object} provider - Ethereum provider (optional, for MetaMask integration)
+     * @returns {Object} Initialization result
      */
-    async initialize(provider, signer) {
+    async initialize(provider = null) {
         try {
-            this.provider = provider;
-            this.signer = signer;
+            if (provider) {
+                // Initialize with MetaMask/external provider
+                this.provider = provider;
+                this.synapse = await Synapse.create({ provider });
+                console.log('Synapse SDK initialized with external provider');
+            } else if (this.config.privateKey) {
+                // Initialize with private key
+                this.synapse = await Synapse.create({
+                    privateKey: this.config.privateKey,
+                    rpcURL: this.config.rpcUrl
+                });
+                console.log('Synapse SDK initialized with private key');
+            } else {
+                console.warn('Synapse service initialized in mock mode - no provider or private key');
+                this.initialized = true;
+                return { success: true, mock: true };
+            }
             
-            // Initialize Synapse client (mock implementation)
-            this.synapseClient = await this.createSynapseClient();
-            
-            // Test connection to Filecoin network
-            await this.testFilecoinConnection();
+            // Test connection and setup payments if needed
+            await this.testConnection();
             
             this.initialized = true;
-            console.log('Synapse service initialized successfully');
+            console.log('Synapse SDK service initialized successfully');
             
+            return { 
+                success: true,
+                network: this.config.network,
+                hasProvider: !!provider,
+                hasPrivateKey: !!this.config.privateKey
+            };
+        } catch (error) {
+            console.error('Failed to initialize Synapse SDK:', error);
+            this.initialized = true; // Continue in mock mode
+            return { success: true, mock: true, error: error.message };
+        }
+    }
+    
+    /**
+     * Test connection to Synapse network
+     */
+    async testConnection() {
+        try {
+            if (!this.synapse) {
+                throw new Error('Synapse SDK not initialized');
+            }
+            
+            // Test basic connection - try to get provider info
+            const provider = this.synapse.getProvider();
+            if (provider) {
+                console.log('Synapse SDK connection test successful');
+                return true;
+            } else {
+                throw new Error('No provider available');
+            }
+        } catch (error) {
+            console.warn('Synapse connection test failed:', error.message);
+            throw error;
+        }
+    }
+    
+    /**
+     * Setup payment system - deposit USDFC and approve services
+     */
+    async setupPayments() {
+        try {
+            if (!this.synapse) {
+                return this.mockSetupPayments();
+            }
+            
+            // 1. Deposit USDFC tokens
+            console.log('Depositing USDFC tokens...');
+            await this.synapse.payments.deposit(this.config.usdcfAmount);
+            
+            // 2. Get warm storage service address
+            const warmStorageAddress = await this.synapse.getWarmStorageAddress();
+            
+            // 3. Approve the service for automated payments
+            console.log('Approving warm storage service...');
+            await this.synapse.payments.approveService(
+                warmStorageAddress,
+                this.config.approvalAmount, // Rate allowance per epoch
+                this.config.lockupAmount,   // Total lockup allowance
+                this.config.maxLockupPeriod // Max lockup period
+            );
+            
+            console.log('Payment setup completed successfully');
             return { success: true };
         } catch (error) {
-            console.error('Failed to initialize Synapse service:', error);
+            console.error('Failed to setup payments:', error);
             return { success: false, error: error.message };
         }
     }
     
     /**
-     * Create Synapse client instance
+     * Upload data to Filecoin warm storage using Synapse SDK
      */
-    async createSynapseClient() {
-        // Mock Synapse client - in production, use actual Synapse SDK
-        return {
-            storage: {
-                upload: this.uploadToWarmStorage.bind(this),
-                download: this.downloadFromWarmStorage.bind(this),
-                list: this.listStoredFiles.bind(this),
-                delete: this.deleteFromStorage.bind(this)
-            },
-            payments: {
-                payWithUSDFC: this.payWithUSDFC.bind(this),
-                getBalance: this.getUSDFCBalance.bind(this),
-                estimateFee: this.estimateStorageFee.bind(this)
-            },
-            network: {
-                getStatus: this.getNetworkStatus.bind(this),
-                getStorageStats: this.getStorageStats.bind(this)
-            }
-        };
-    }
-    
-    /**
-     * Test connection to Filecoin network
-     */
-    async testFilecoinConnection() {
+    async uploadToWarmStorage(data, category = 'USER_DATA', metadata = {}) {
         try {
-            const response = await axios.get(`${this.config.apiUrl}/status`, {
-                headers: {
-                    'Authorization': `Bearer ${this.config.apiKey}`,
-                    'Content-Type': 'application/json'
-                },
-                timeout: 10000
-            });
-            
-            if (response.status === 200) {
-                console.log('Successfully connected to Filecoin network via Synapse');
-                return true;
+            if (!this.initialized) {
+                await this.initialize();
             }
             
-            throw new Error('Failed to connect to Filecoin network');
+            if (!this.synapse) {
+                return this.mockUpload(data, category, metadata);
+            }
+            
+            // Prepare data for upload
+            let uploadData;
+            if (typeof data === 'string') {
+                uploadData = new TextEncoder().encode(data);
+            } else if (data instanceof Uint8Array) {
+                uploadData = data;
+            } else {
+                uploadData = new TextEncoder().encode(JSON.stringify(data));
+            }
+            
+            // Upload using Synapse SDK
+            console.log(`Uploading ${uploadData.length} bytes to Filecoin warm storage...`);
+            const uploadResult = await this.synapse.storage.upload(uploadData);
+            
+            return {
+                success: true,
+                pieceCid: uploadResult.pieceCid,
+                category,
+                metadata: {
+                    ...metadata,
+                    uploadedAt: new Date().toISOString(),
+                    size: uploadData.length,
+                    category
+                },
+                synapseResult: uploadResult
+            };
+            
         } catch (error) {
-            console.warn('Filecoin connection test failed, using mock mode:', error.message);
-            return false;
+            console.error('Failed to upload to warm storage:', error);
+            return { success: false, error: error.message };
         }
     }
     
     /**
-     * Upload data to Filecoin warm storage
-     * @param {Object} data - Data to upload
-     * @param {string} category - Storage category
-     * @param {string} filename - File name
-     * @param {Object} metadata - Additional metadata
-     * @returns {Object} Upload result
+     * Download data from Filecoin warm storage using Synapse SDK
      */
-    async uploadToWarmStorage(data, category, filename, metadata = {}) {
+    async downloadFromWarmStorage(pieceCid) {
         try {
             if (!this.initialized) {
-                throw new Error('Synapse service not initialized');
+                await this.initialize();
             }
             
-            // Prepare data with metadata
-            const uploadData = {
-                content: data,
-                metadata: {
-                    ...metadata,
-                    category,
-                    filename,
-                    uploadedAt: new Date().toISOString(),
-                    uploader: await this.signer.getAddress(),
-                    size: JSON.stringify(data).length,
-                    version: '1.0.0'
-                }
+            if (!this.synapse) {
+                return this.mockDownload(pieceCid);
+            }
+            
+            // Download using Synapse SDK
+            console.log(`Downloading data with PieceCID: ${pieceCid}`);
+            const data = await this.synapse.storage.download(pieceCid);
+            
+            return {
+                success: true,
+                pieceCid,
+                data,
+                downloadedAt: new Date().toISOString(),
+                size: data.length
             };
             
-            // Estimate storage fee
-            const feeEstimate = await this.estimateStorageFee(uploadData);
-            
-            // Pay storage fee with USDFC
-            const paymentResult = await this.payWithUSDFC(
-                feeEstimate.amount,
-                this.paymentTypes.STORAGE_FEE,
-                { filename, category }
-            );
-            
-            if (!paymentResult.success) {
-                throw new Error(`Payment failed: ${paymentResult.error}`);
+        } catch (error) {
+            console.error('Failed to download from warm storage:', error);
+            return { success: false, error: error.message };
+        }
+    }
+    
+    /**
+     * Pay with USDFC tokens using Synapse SDK
+     */
+    async payWithUSDFC(amount, recipient) {
+        try {
+            if (!this.synapse) {
+                return this.mockPayment(amount, recipient);
             }
             
-            // Upload to warm storage
-            const uploadResult = await this.performWarmStorageUpload(uploadData, category, filename);
+            // Use Synapse payments system
+            const result = await this.synapse.payments.transfer(recipient, amount);
+            
+            return {
+                success: true,
+                transactionHash: result.hash,
+                amount,
+                recipient,
+                timestamp: new Date().toISOString()
+            };
+            
+        } catch (error) {
+            console.error('Failed to pay with USDFC:', error);
+            return { success: false, error: error.message };
+        }
+    }
+    
+    /**
+     * Get USDFC balance
+     */
+    async getUSDFCBalance() {
+        try {
+            if (!this.synapse) {
+                return this.mockBalance();
+            }
+            
+            const balance = await this.synapse.payments.getBalance();
+            
+            return {
+                success: true,
+                balance: ethers.formatUnits(balance, 18),
+                balanceWei: balance.toString()
+            };
+            
+        } catch (error) {
+            console.error('Failed to get USDFC balance:', error);
+            return { success: false, error: error.message };
+        }
+    }
+    
+    // Mock methods for development/testing
+    mockSetupPayments() {
+        console.log('Mock: Setting up USDFC payments');
+        return { success: true, mock: true };
+    }
+    
+    mockUpload(data, category, metadata) {
+        const mockPieceCid = `bafk2bzaced${Math.random().toString(36).substring(2, 15)}`;
+        console.log(`Mock: Uploading data to category ${category}`);
+        return {
+            success: true,
+            pieceCid: mockPieceCid,
+            category,
+            metadata: {
+                ...metadata,
+                uploadedAt: new Date().toISOString(),
+                size: JSON.stringify(data).length,
+                category
+            },
+            mock: true
+        };
+    }
+    
+    mockDownload(pieceCid) {
+        console.log(`Mock: Downloading data with PieceCID ${pieceCid}`);
+        return {
+            success: true,
+            pieceCid,
+            data: new TextEncoder().encode('Mock data from Synapse warm storage'),
+            downloadedAt: new Date().toISOString(),
+            size: 256,
+            mock: true
+        };
+    }
+    
+    mockPayment(amount, recipient) {
+        console.log(`Mock: Paying ${amount} USDFC to ${recipient}`);
+        return {
+            success: true,
+            transactionHash: `0x${Math.random().toString(16).substring(2, 66)}`,
+            amount,
+            recipient,
+            timestamp: new Date().toISOString(),
+            mock: true
+        };
+    }
+    
+    mockBalance() {
+        return {
+            success: true,
+            balance: '1000.0',
+            balanceWei: ethers.parseUnits('1000', 18).toString(),
+            mock: true
+        };
+    }
+    
+    /**
+     * Get service statistics
+     */
+    getServiceStats() {
+        return {
+            initialized: this.initialized,
+            hasProvider: !!this.provider,
+            hasSynapse: !!this.synapse,
+            network: this.config.network,
+            mockMode: !this.synapse
+        };
+    }
+    
+    /**
+     * Cleanup resources
+     */
+    async cleanup() {
+        try {
+            if (this.synapse && this.provider) {
+                const provider = this.synapse.getProvider();
+                if (provider && typeof provider.destroy === 'function') {
+                    await provider.destroy();
+                }
+            }
+            console.log('Synapse service cleanup completed');
+        } catch (error) {
+            console.error('Error during cleanup:', error);
+        }
+    }
+}
+
+export default SynapseService;
             
             return {
                 success: true,
