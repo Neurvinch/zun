@@ -8,7 +8,8 @@ const DATADAO_ABI = [
     "function getUserContributions(address user) external view returns (uint256[])",
     "function createProposal(string memory title, string memory description) external",
     "function vote(uint256 proposalId, bool support) external",
-    "function getProposal(uint256 proposalId) external view returns (address, string, string, uint256, uint256, uint256, bool)"
+    "function getProposal(uint256 proposalId) external view returns (address, string, string, uint256, uint256, uint256, bool)",
+    "function proposalCount() external view returns (uint256)"
 ];
 
 /**
@@ -115,216 +116,98 @@ class DataDAOService {
         }
     }
     
-    /**
-     * Calculate reward based on data type and quality
-     */
-    calculateReward(dataType, data) {
-        const baseRewards = {
-            'price_feed': 5.0,
-            'sentiment_data': 8.0,
-            'market_analysis': 12.0,
-            'defi_metrics': 10.0,
-            'governance_data': 15.0
-        };
-        
-        const baseReward = baseRewards[dataType] || 5.0;
-        const qualityMultiplier = Math.random() * 0.5 + 0.75; // 0.75 to 1.25
-        
-        return (baseReward * qualityMultiplier).toFixed(2);
-    }
     
-    /**
-     * Update user statistics
-     */
-    updateUserStats(userAddress, contribution) {
-        let stats = this.userStats.get(userAddress) || {
-            totalContributions: 0,
-            totalRewards: '0',
-            reputation: 50,
-            dataQualityScore: 50
-        };
-        
-        stats.totalContributions += 1;
-        stats.totalRewards = (parseFloat(stats.totalRewards) + parseFloat(contribution.rewardAmount)).toFixed(2);
-        stats.reputation = Math.min(100, stats.reputation + 2);
-        stats.dataQualityScore = Math.min(100, stats.dataQualityScore + 1);
-        
-        this.userStats.set(userAddress, stats);
-    }
     
-    /**
-     * Get user contributions
-     */
-    getUserContributions(userAddress) {
-        const contributions = Array.from(this.dataContributions.values())
-            .filter(c => c.contributor.toLowerCase() === userAddress.toLowerCase())
-            .sort((a, b) => b.timestamp - a.timestamp);
-            
-        return {
-            success: true,
-            contributions,
-            total: contributions.length
-        };
-    }
-    
-    /**
-     * Get user statistics
-     */
-    getUserStats(userAddress) {
-        const stats = this.userStats.get(userAddress) || {
-            totalContributions: 0,
-            totalRewards: '0',
-            reputation: 50,
-            dataQualityScore: 50
-        };
-        
-        return {
-            success: true,
-            stats
-        };
-    }
-    
-    /**
-     * Create governance proposal
-     */
-    async createProposal(title, description, userAddress) {
+    async getUserContributions(userAddress) {
         try {
-            const proposalId = Date.now().toString();
-            const proposal = {
-                id: proposalId,
-                proposer: userAddress,
-                title,
-                description,
-                votesFor: 0,
-                votesAgainst: 0,
-                status: 'active',
-                createdAt: Date.now(),
-                endTime: Date.now() + 604800000 // 7 days
-            };
+            if (!this.initialized) throw new Error('Service not initialized');
+
+            const contributionIds = await this.contract.getUserContributions(userAddress);
             
-            this.proposals.set(proposalId, proposal);
-            
+            const contributions = await Promise.all(
+                contributionIds.map(async (id) => {
+                    const c = await this.contract.getContribution(id);
+                    return {
+                        id: id.toString(),
+                        contributor: c[0],
+                        dataType: c[1],
+                        dataHash: c[2],
+                        rewardAmount: ethers.formatEther(c[3]),
+                        timestamp: Number(c[4]) * 1000
+                    };
+                })
+            );
+
+            return { success: true, contributions: contributions.reverse() };
+        } catch (error) {
+            console.error('Failed to get user contributions:', error);
+            return { success: false, error: error.message };
+        }
+    }
+    
+    
+    async createProposal(title, description) {
+        try {
+            if (!this.initialized) throw new Error('Service not initialized');
+
+            const tx = await this.contract.createProposal(title, description);
+            const receipt = await tx.wait();
+
             return {
                 success: true,
-                proposalId,
-                proposal
+                transactionHash: receipt.transactionHash
             };
-            
         } catch (error) {
             console.error('Proposal creation failed:', error);
             return { success: false, error: error.message };
         }
     }
     
-    /**
-     * Vote on proposal
-     */
-    async voteOnProposal(proposalId, vote, userAddress) {
+    async voteOnProposal(proposalId, support) {
         try {
-            const proposal = this.proposals.get(proposalId);
-            
-            if (!proposal) {
-                throw new Error('Proposal not found');
-            }
-            
-            if (proposal.status !== 'active') {
-                throw new Error('Proposal is not active');
-            }
-            
-            if (Date.now() > proposal.endTime) {
-                throw new Error('Voting period has ended');
-            }
-            
-            // Update vote counts
-            if (vote === 'for') {
-                proposal.votesFor += 1;
-            } else {
-                proposal.votesAgainst += 1;
-            }
-            
-            this.proposals.set(proposalId, proposal);
-            
+            if (!this.initialized) throw new Error('Service not initialized');
+
+            const tx = await this.contract.vote(proposalId, support);
+            const receipt = await tx.wait();
+
             return {
                 success: true,
-                proposal
+                transactionHash: receipt.transactionHash
             };
-            
         } catch (error) {
             console.error('Voting failed:', error);
             return { success: false, error: error.message };
         }
     }
     
-    /**
-     * Get all proposals
-     */
-    getAllProposals() {
-        const proposals = Array.from(this.proposals.values())
-            .sort((a, b) => b.createdAt - a.createdAt);
-            
-        return {
-            success: true,
-            proposals
-        };
-    }
-    
-    /**
-     * Get DAO statistics
-     */
-    getDAOStats() {
-        const totalContributions = this.dataContributions.size;
-        const totalRewards = Array.from(this.dataContributions.values())
-            .reduce((sum, c) => sum + parseFloat(c.rewardAmount), 0);
-        const activeProposals = Array.from(this.proposals.values())
-            .filter(p => p.status === 'active').length;
-        const totalUsers = this.userStats.size;
-        
-        return {
-            success: true,
-            stats: {
-                totalContributions,
-                totalRewards: totalRewards.toFixed(2),
-                activeProposals,
-                totalUsers,
-                averageReward: totalContributions > 0 ? (totalRewards / totalContributions).toFixed(2) : '0'
+    async getAllProposals() {
+        try {
+            if (!this.initialized) throw new Error('Service not initialized');
+
+            const proposalCount = await this.contract.proposalCount();
+            const proposals = [];
+
+            for (let i = 0; i < proposalCount; i++) {
+                const p = await this.contract.getProposal(i);
+                proposals.push({
+                    id: i.toString(),
+                    proposer: p[0],
+                    title: p[1],
+                    description: p[2],
+                    votesFor: p[3].toString(),
+                    votesAgainst: p[4].toString(),
+                    endTime: new Date(Number(p[5]) * 1000),
+                    executed: p[6]
+                });
             }
-        };
+
+            return { success: true, proposals: proposals.reverse() };
+        } catch (error) {
+            console.error('Failed to get all proposals:', error);
+            return { success: false, error: error.message };
+        }
     }
     
-    /**
-     * Get recent activity
-     */
-    getRecentActivity(limit = 10) {
-        const activities = [];
-        
-        // Add contributions
-        Array.from(this.dataContributions.values()).forEach(c => {
-            activities.push({
-                type: 'contribution',
-                timestamp: c.timestamp,
-                data: c
-            });
-        });
-        
-        // Add proposals
-        Array.from(this.proposals.values()).forEach(p => {
-            activities.push({
-                type: 'proposal',
-                timestamp: p.createdAt,
-                data: p
-            });
-        });
-        
-        // Sort by timestamp and limit
-        const recentActivities = activities
-            .sort((a, b) => b.timestamp - a.timestamp)
-            .slice(0, limit);
-            
-        return {
-            success: true,
-            activities: recentActivities
-        };
-    }
 }
 
 export default new DataDAOService();

@@ -20,7 +20,7 @@
     backdrop-filter: none;
     border: none;
     padding: 0;
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
 }
 
 .header-icon {
@@ -33,22 +33,28 @@
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
+    font-size: 1.5rem;
 }
 
 .reputation-card {
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid var(--border-color);
+    padding: 1rem;
+    border-radius: 8px;
 }
 
 /* Tabs */
 .airdrop-tabs {
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
 }
 
 .tab-button {
     background: rgba(255, 255, 255, 0.05);
     color: var(--text-secondary);
     border: 1px solid var(--border-color);
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    border-radius: 6px;
 }
 
 .tab-button:hover {
@@ -58,7 +64,7 @@
 
 .tab-button.active {
     background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-    box-shadow: 0 0 20px var(--glow-color);
+    box-shadow: 0 0 15px var(--glow-color);
 }
 
 /* Content */
@@ -78,6 +84,8 @@
     background: rgba(20, 20, 22, 0.4);
     border: 1px solid var(--border-color);
     backdrop-filter: blur(5px);
+    padding: 1.25rem;
+    border-radius: 10px;
 }
 
 .campaign-type {
@@ -96,11 +104,14 @@
 .claim-button,
 .create-button {
     background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    font-size: 0.9rem;
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
 }
 
 .claim-button:hover:not(:disabled),
 .create-button:hover:not(:disabled) {
-    box-shadow: 0 0 20px var(--glow-color);
+    box-shadow: 0 0 15px var(--glow-color);
 }
 
 .claimed-type {
@@ -136,6 +147,9 @@
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid var(--border-color);
     color: var(--text-primary);
+    font-size: 0.9rem;
+    padding: 0.6rem 0.8rem;
+    border-radius: 6px;
 }
 
 .form-group input:focus,
@@ -145,10 +159,10 @@
     box-shadow: 0 0 0 3px var(--glow-color);
 }
 
-
-
 .claimed-header h3 {
     color: var(--text-primary);
+    font-size: 1.1rem;
+    margin-bottom: 0.75rem;
 }
 
 .claimed-count {
