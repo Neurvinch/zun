@@ -20,7 +20,7 @@
     backdrop-filter: none;
     border-radius: 0;
     padding: 0;
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
     border: none;
 }
 
@@ -34,11 +34,14 @@
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
+    font-size: 1.5rem;
 }
 
 .stat-card {
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid var(--border-color);
+    padding: 0.75rem;
+    border-radius: 6px;
 }
 
 .stat-icon {
@@ -48,13 +51,16 @@
 
 /* Tabs */
 .datadao-tabs {
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
 }
 
 .tab-button {
     background: rgba(255, 255, 255, 0.05);
     color: var(--text-secondary);
     border: 1px solid var(--border-color);
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    border-radius: 6px;
 }
 
 .tab-button:hover {
@@ -64,7 +70,7 @@
 
 .tab-button.active {
     background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-    box-shadow: 0 0 20px var(--glow-color);
+    box-shadow: 0 0 15px var(--glow-color);
 }
 
 /* Content */
@@ -86,8 +92,8 @@
 .rewards-info {
     background: rgba(20, 20, 22, 0.4);
     border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 1.5rem;
+    border-radius: 10px;
+    padding: 1.25rem;
 }
 
 .overview-card h3,
@@ -99,6 +105,8 @@
 .rewards-summary h3,
 .rewards-info h3 {
     color: var(--text-primary);
+    font-size: 1.1rem;
+    margin-bottom: 0.75rem;
 }
 
 .card-icon {
@@ -112,6 +120,9 @@
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid var(--border-color);
     color: var(--text-primary);
+    font-size: 0.9rem;
+    padding: 0.6rem 0.8rem;
+    border-radius: 6px;
 }
 
 .form-group input:focus,
@@ -125,18 +136,23 @@
 .claim-button,
 .vote-yes {
     background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    font-size: 0.9rem;
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
 }
 
 .submit-button:hover:not(:disabled),
 .claim-button:hover:not(:disabled),
 .vote-yes:hover:not(:disabled) {
-    box-shadow: 0 0 20px var(--glow-color);
+    box-shadow: 0 0 15px var(--glow-color);
 }
 
 /* Proposal Card */
 .proposal-card {
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid var(--border-color);
+    padding: 1rem;
+    border-radius: 8px;
 }
 
 .proposal-status.active {

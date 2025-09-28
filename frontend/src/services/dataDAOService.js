@@ -1,5 +1,15 @@
 import { ethers } from 'ethers';
 import { lighthouse } from '@lighthouse-web3/sdk';
+import { publicClientToProvider, walletClientToSigner } from '../utils/viem-ethers-adapter';
+
+const DATADAO_ABI = [
+    "function contributeData(string memory dataType, string memory dataHash) external",
+    "function getContribution(uint256 contributionId) external view returns (address, string, string, uint256, uint256)",
+    "function getUserContributions(address user) external view returns (uint256[])",
+    "function createProposal(string memory title, string memory description) external",
+    "function vote(uint256 proposalId, bool support) external",
+    "function getProposal(uint256 proposalId) external view returns (address, string, string, uint256, uint256, uint256, bool)"
+];
 
 /**
  * DataDAO Frontend Service
@@ -8,31 +18,36 @@ import { lighthouse } from '@lighthouse-web3/sdk';
 class DataDAOService {
     constructor() {
         this.provider = null;
+        this.signer = null;
         this.contract = null;
         this.initialized = false;
         this.contractAddress = import.meta.env.VITE_DATADAO_CONTRACT_ADDRESS;
         this.lighthouseApiKey = import.meta.env.VITE_LIGHTHOUSE_API_KEY;
-        
-        // In-memory storage for frontend-only mode
-        this.dataContributions = new Map();
-        this.proposals = new Map();
-        this.rewards = new Map();
-        this.userStats = new Map();
     }
     
     /**
      * Initialize the DataDAO service
      */
-    async initialize() {
+    async initialize(publicClient, walletClient) {
         try {
-            console.log('Initializing DataDAO service...');
-            
-            // Initialize with mock data for demo
-            this.initializeMockData();
-            
+            if (!publicClient || !walletClient) {
+                throw new Error('Clients not provided');
+            }
+            this.provider = publicClientToProvider(publicClient);
+            this.signer = walletClientToSigner(walletClient);
+
+            if (!this.contractAddress) {
+                throw new Error('DataDAO contract address not configured');
+            }
+
+            this.contract = new ethers.Contract(
+                this.contractAddress,
+                DATADAO_ABI,
+                this.signer
+            );
+
             this.initialized = true;
-            console.log('DataDAO service initialized successfully');
-            
+            console.log('DataDAO service initialized');
             return { success: true };
         } catch (error) {
             console.error('Failed to initialize DataDAO service:', error);
@@ -40,51 +55,6 @@ class DataDAOService {
         }
     }
     
-    /**
-     * Initialize mock data for demo purposes
-     */
-    initializeMockData() {
-        // Mock data contributions
-        this.dataContributions.set('1', {
-            id: '1',
-            contributor: '0x742d35Cc6634C0532925a3b8D4C9db96590c4',
-            dataType: 'price_feed',
-            dataHash: 'QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG',
-            rewardAmount: '10.5',
-            timestamp: Date.now() - 86400000,
-            status: 'verified'
-        });
-        
-        this.dataContributions.set('2', {
-            id: '2',
-            contributor: '0x8ba1f109551bD432803012645Hac136c0532925a3b8D4C9db96590c4',
-            dataType: 'sentiment_data',
-            dataHash: 'QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdH',
-            rewardAmount: '15.2',
-            timestamp: Date.now() - 172800000,
-            status: 'pending'
-        });
-        
-        // Mock proposals
-        this.proposals.set('1', {
-            id: '1',
-            proposer: '0x742d35Cc6634C0532925a3b8D4C9db96590c4',
-            title: 'Increase Data Quality Rewards',
-            description: 'Proposal to increase rewards for high-quality data contributions',
-            votesFor: 150,
-            votesAgainst: 45,
-            status: 'active',
-            endTime: Date.now() + 604800000 // 7 days from now
-        });
-        
-        // Mock user stats
-        this.userStats.set('0x742d35Cc6634C0532925a3b8D4C9db96590c4', {
-            totalContributions: 5,
-            totalRewards: '52.7',
-            reputation: 85,
-            dataQualityScore: 92
-        });
-    }
     
     /**
      * Submit data contribution
