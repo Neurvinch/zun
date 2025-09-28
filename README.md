@@ -1,14 +1,14 @@
-# ZKVault Protocol
+# ZKVault Protocol v2.0
 
-**Privacy-Preserving DeFi Swaps with Self Protocol Integration**
+**Privacy-Preserving DeFi Swaps with Custom Identity Verification**
 
-ZKVault is a comprehensive DeFi protocol that combines zero-knowledge proofs for shielded swaps, onchain human verification via Self Protocol, and encrypted off-chain receipt storage using Filecoin/IPFS. The protocol integrates multiple cutting-edge technologies to create a privacy-first, Sybil-resistant trading environment.
+ZKVault is a comprehensive DeFi protocol that combines zero-knowledge proofs for shielded swaps, advanced custom identity verification, and encrypted off-chain receipt storage using Filecoin/IPFS. The protocol integrates multiple cutting-edge technologies to create a privacy-first, Sybil-resistant trading environment with our own innovative on-chain identity system.
 
 ## 🌟 Features
 
 ### Core Protocol Features
 - **🔒 Zero-Knowledge Shielded Swaps**: Privacy-preserving token swaps using zk-SNARKs
-- **👤 Human Verification**: Sybil-resistant identity verification via Self Protocol
+- **🆔 Custom Identity Verification**: Advanced multi-method identity verification system
 - **📦 Decentralized Storage**: Encrypted receipt storage on Filecoin/IPFS via Lighthouse and Synapse
 - **🤖 AI/ML Analytics**: Dataset storage and analytics via Akave O3 S3-compatible API
 - **📊 Live Data Feeds**: Real-world data integration with zkTLS cryptographic proofs
@@ -16,13 +16,22 @@ ZKVault is a comprehensive DeFi protocol that combines zero-knowledge proofs for
 - **⛽ Gasless Transactions**: Meta-transactions via Gelato relayer network
 - **🎯 Airdrop Gating**: Verified-human-only token distributions
 
+### 🆔 Custom Identity Verification System
+- **👥 Social Verification**: Community vouching system with trusted verifiers
+- **📈 Activity-Based Verification**: On-chain behavior pattern analysis
+- **💰 Stake-Based Verification**: Economic incentives for honest verification
+- **🔐 Biometric ZK Proofs**: Privacy-preserving biometric verification
+- **✍️ Multi-Signature Verification**: Trusted verifier consensus system
+- **⏰ Time-Lock Verification**: Commitment-based verification methods
+- **🌐 Cross-Chain Verification**: Multi-network identity proofs
+
 ### Technology Stack
 - **Smart Contracts**: Solidity 0.8.19 with OpenZeppelin
 - **Frontend**: React 19 + Vite + TailwindCSS
 - **Backend**: Node.js + Express
 - **Blockchain**: Ethereum, Polygon, Base, Filecoin
 - **Storage**: Lighthouse (IPFS/Filecoin), Akave O3, Synapse SDK
-- **Identity**: Self Protocol for human verification
+- **Identity**: Custom Multi-Method Identity Verification System
 - **Privacy**: Circom + SnarkJS for zero-knowledge proofs
 - **Data**: zkTLS for verifiable real-world data feeds
 
@@ -38,20 +47,19 @@ ZKVault is a comprehensive DeFi protocol that combines zero-knowledge proofs for
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/your-org/zkvault-protocol.git
-   cd zkvault-protocol
+   git clone https://github.com/your-org/zkvault-custom-protocol.git
+   cd zkvault-custom-protocol
    ```
 
 2. **Install dependencies**
    ```bash
-   # Install root dependencies (Hardhat, etc.)
-   npm install
+   # Install all dependencies (root, frontend, backend)
+   npm run install:all
    
-   # Install frontend dependencies
-   cd frontend && npm install && cd ..
-   
-   # Install backend dependencies
-   cd backend && npm install && cd ..
+   # Or install individually:
+   npm install                    # Root dependencies (Hardhat, etc.)
+   cd frontend && npm install     # Frontend dependencies
+   cd ../backend && npm install   # Backend dependencies
    ```
 
 3. **Environment setup**
@@ -81,7 +89,18 @@ ZKVault is a comprehensive DeFi protocol that combines zero-knowledge proofs for
    # Visit: https://faucet.akave.ai
    ```
 
-6. **Start development environment**
+6. **Deploy contracts (optional for local development)**
+   ```bash
+   # Deploy to local hardhat network
+   npm run deploy:localhost
+   
+   # Or deploy to testnets
+   npm run deploy:sepolia
+   npm run deploy:base-sepolia
+   npm run deploy:filecoin
+   ```
+
+7. **Start development environment**
    ```bash
    # Start both frontend and backend
    npm run dev
@@ -91,7 +110,7 @@ ZKVault is a comprehensive DeFi protocol that combines zero-knowledge proofs for
    npm run backend:dev   # Backend only
    ```
 
-7. **Access the application**
+8. **Access the application**
    - Frontend: http://localhost:5173
    - Backend API: http://localhost:3001
 
@@ -117,9 +136,9 @@ ZKVault is a comprehensive DeFi protocol that combines zero-knowledge proofs for
    - Polygon.io API key (for market data) - **REQUIRED**
    - CoinGecko API (free tier available)
 
-4. **Self Protocol**
-   - Self Protocol app configuration
-   - Verification hub contract addresses
+4. **Custom Identity Verification**
+   - No external dependencies required
+   - All verification logic is on-chain
 
 ### Environment Variables
 
@@ -143,9 +162,8 @@ SYNAPSE_API_KEY="your_synapse_api_key"
 NEWS_API_KEY="your_news_api_key"
 GELATO_API_KEY="your_gelato_api_key"
 
-# Self Protocol
-SELF_APP_NAME="ZKVault Protocol"
-SELF_SCOPE="zkvault-human-verification"
+# Custom Identity Verification
+# No additional configuration required - all on-chain!
 ```
 
 ## 🏗️ Architecture
@@ -161,22 +179,23 @@ SELF_SCOPE="zkvault-human-verification"
          ▼                       ▼                       ▼
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │ Storage Layer   │    │  Data Feeds     │    │   Identity      │
-│ (IPFS/Filecoin) │    │   (zkTLS)       │    │ (Self Protocol) │
+│ (IPFS/Filecoin) │    │   (zkTLS)       │    │ (Custom System) │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
 ### Smart Contracts
 
-1. **ZKVaultWithSelf.sol**: Main protocol contract with Self Protocol integration
-2. **DataDAO.sol**: Decentralized data sharing and governance
-3. **DataCoin.sol**: ERC-20 governance token with voting capabilities
-4. **GasPoolDAO.sol**: Gasless transaction funding and management
-5. **PrivacyAuditSystem.sol**: Privacy compliance and audit logging
-6. **AirdropGating.sol**: Verified-human-only token distributions
+1. **CustomIdentityVerification.sol**: Advanced multi-method identity verification system
+2. **ZKVaultCustom.sol**: Main protocol contract with custom identity verification
+3. **DataDAO.sol**: Decentralized data sharing and governance
+4. **DataCoin.sol**: ERC-20 governance token with voting capabilities
+5. **GasPoolDAO.sol**: Gasless transaction funding and management
+6. **PrivacyAuditSystem.sol**: Privacy compliance and audit logging
+7. **AirdropGating.sol**: Verified-human-only token distributions (updated for custom verification)
 
 ### Data Flow
 
-1. **User Authentication**: Self Protocol verifies human identity
+1. **User Authentication**: Custom identity verification system validates user through multiple methods
 2. **Swap Initiation**: User initiates privacy-preserving swap
 3. **ZK Proof Generation**: Client generates zero-knowledge proof
 4. **Transaction Execution**: Relayer submits transaction with proofs
@@ -199,7 +218,8 @@ npm run deploy:localhost
 
 # Deploy to testnets
 npm run deploy:sepolia
-npm run deploy:baseSepolia
+npm run deploy:base-sepolia
+npm run deploy:polygon-mumbai
 npm run deploy:filecoin
 ```
 
