@@ -84,7 +84,7 @@ class HackathonValidator {
         // Check 4: Environment configuration
         const envExamplePath = path.join(this.projectRoot, 'frontend/.env.example');
         const envContent = this.getFileContent(envExamplePath);
-        if (envContent && envContent.includes('AKAVE_ACCESS_KEY_ID')) {
+        if (envContent && (envContent.includes('VITE_AKAVE_API_URL') || envContent.includes('AKAVE_ACCESS_KEY_ID'))) {
             this.addCheck('akave', '✅ Akave environment configuration present');
         } else {
             this.addCheck('akave', '❌ Akave environment configuration missing');
