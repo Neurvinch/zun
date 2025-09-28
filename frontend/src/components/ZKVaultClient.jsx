@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAccount } from 'wagmi';
 import { ethers } from 'ethers';
 import zkVaultClient from '../services/zkVaultClient';
-import { getZKVaultContract, getSelfProtocolContract } from '../config/tokens';
+import { getZKVaultContract } from '../config/tokens';
 import './ZKVaultClient.css';
 
 const ZKVaultClient = ({ 
@@ -81,8 +81,7 @@ const ZKVaultClient = ({
 
             // Get contract addresses
             const contractAddresses = {
-                zkVaultContract: getZKVaultContract(chain.id),
-                selfProtocolContract: getSelfProtocolContract(chain.id)
+                zkVaultContract: getZKVaultContract(chain.id)
             };
 
             // Step 1: Generate ZK Proof
@@ -320,10 +319,6 @@ const ZKVaultClient = ({
                         <div className="detail-item">
                             <span className="label">ZKVault Tx:</span>
                             <span className="value">{submissionResult.zkVaultTxHash}</span>
-                        </div>
-                        <div className="detail-item">
-                            <span className="label">Self Protocol Tx:</span>
-                            <span className="value">{submissionResult.selfProtocolTxHash}</span>
                         </div>
                         <div className="detail-item">
                             <span className="label">Status:</span>

@@ -149,10 +149,7 @@ class ZKVaultClient {
      */
     async submitVerificationData(proofPackage, contractAddresses, signer) {
         try {
-            const {
-                zkVaultContract,
-                selfProtocolContract
-            } = contractAddresses;
+            const { zkVaultContract } = contractAddresses;
 
             // Prepare contract call data
             const callData = this.encodeContractCallData(proofPackage);
@@ -165,16 +162,9 @@ class ZKVaultClient {
                 signer
             );
             
-            // Submit to Self Protocol for human verification
-            const selfProtocolTx = await this.submitToSelfProtocol(
-                selfProtocolContract,
-                proofPackage,
-                signer
-            );
             
             return {
                 zkVaultTxHash: zkVaultTx.hash,
-                selfProtocolTxHash: selfProtocolTx.hash,
                 timestamp: Date.now(),
                 status: 'submitted'
             };
@@ -360,23 +350,6 @@ class ZKVaultClient {
         };
     }
 
-    /**
-     * Submit to Self Protocol contract
-     * @param {String} contractAddress - Contract address
-     * @param {Object} proofPackage - Proof package
-     * @param {Object} signer - Ethers signer
-     * @returns {Object} - Transaction result
-     */
-    async submitToSelfProtocol(contractAddress, proofPackage, signer) {
-        // Mock implementation - replace with actual contract interaction
-        console.log('Submitting to Self Protocol contract:', contractAddress);
-        
-        return {
-            hash: '0x' + Math.random().toString(16).substr(2, 64),
-            timestamp: Date.now(),
-            status: 'pending'
-        };
-    }
 
     /**
      * Get client status and statistics

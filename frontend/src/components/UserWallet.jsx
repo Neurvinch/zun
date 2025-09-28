@@ -4,7 +4,6 @@ import { ethers } from 'ethers';
 import zkProofService from '../services/zkProofService';
 import { getSupportedTokens, getTokenMetadata, getSwapLimits } from '../config/tokens';
 import ZKVaultClient from './ZKVaultClient';
-import HumanVerification from './HumanVerification';
 import GaslessTransaction from './GaslessTransaction';
 import ShieldedPool from './ShieldedPool';
 import OneInchSwap from './OneInchSwap';
@@ -55,8 +54,6 @@ const UserWallet = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [showStep2, setShowStep2] = useState(false);
     const [step2Result, setStep2Result] = useState(null);
-    const [humanVerificationStatus, setHumanVerificationStatus] = useState(null);
-    const [showHumanVerification, setShowHumanVerification] = useState(false);
     const [showGaslessTransaction, setShowGaslessTransaction] = useState(false);
     const [gaslessTransactionData, setGaslessTransactionData] = useState(null);
     const [showShieldedPool, setShowShieldedPool] = useState(false);
@@ -212,15 +209,13 @@ const UserWallet = () => {
             // Check basic eligibility
             const hasMinBalance = tokenBalance.value >= minBalanceWei + swapAmountWei;
             const withinSwapLimits = swapAmountWei <= maxSwapAmountWei && swapAmountWei >= minSwapAmountWei;
-            const isHumanVerified = humanVerificationStatus?.isVerified || false;
-
-            const eligible = hasMinBalance && withinSwapLimits && isHumanVerified;
+            const eligible = hasMinBalance && withinSwapLimits;
 
             setEligibilityStatus({
                 eligible,
                 hasMinBalance,
                 withinSwapLimits,
-                isHumanVerified,
+                isHumanVerified: true, // Default to true as the check is removed
                 balance: tokenBalance.formatted,
                 swapAmount: swapAmount,
                 token: selectedToken,
@@ -338,24 +333,6 @@ const UserWallet = () => {
         console.error('Step 2 workflow error:', error);
     };
 
-    // Human verification callbacks
-    const handleHumanVerificationComplete = (verificationResult) => {
-        setHumanVerificationStatus(verificationResult);
-        console.log('Human verification completed:', verificationResult);
-        
-        // Update eligibility status to include human verification
-        if (eligibilityStatus) {
-            setEligibilityStatus(prev => ({
-                ...prev,
-                isHumanVerified: verificationResult.isVerified
-            }));
-        }
-    };
-
-    const handleHumanVerificationError = (error) => {
-        setError(`Human verification failed: ${error.message}`);
-        console.error('Human verification error:', error);
-    };
 
     // Gasless transaction callbacks
     const handleGaslessTransactionComplete = (result) => {
@@ -604,17 +581,6 @@ const UserWallet = () => {
                         <div className={`check ${eligibilityStatus.withinSwapLimits ? 'pass' : 'fail'}`}>
                             ✓ Swap Limits: {eligibilityStatus.withinSwapLimits ? 'Pass' : 'Fail'}
                         </div>
-                        <div className={`check ${eligibilityStatus.isHumanVerified ? 'pass' : 'fail'}`}>
-                            ✓ Human Verified: {eligibilityStatus.isHumanVerified ? 'Pass' : 'Fail'}
-                            {!eligibilityStatus.isHumanVerified && (
-                                <button 
-                                    onClick={() => setShowHumanVerification(true)}
-                                    className="verify-human-btn"
-                                >
-                                    Verify Now
-                                </button>
-                            )}
-                        </div>
                     </div>
                 </div>
             )}
@@ -722,36 +688,11 @@ const UserWallet = () => {
                         <p><strong>Receipt Template:</strong> Prepared ✓</p>
                         <p><strong>Verification Submitted:</strong> ✓</p>
                         <p><strong>ZKVault Tx:</strong> {step2Result.submissionResult?.zkVaultTxHash}</p>
-                        <p><strong>Self Protocol Tx:</strong> {step2Result.submissionResult?.selfProtocolTxHash}</p>
                     </div>
                 </div>
             )}
 
-            {/* Step 3: Human Verification */}
-            {showHumanVerification && (
-                <HumanVerification
-                    onVerificationComplete={handleHumanVerificationComplete}
-                    onError={handleHumanVerificationError}
-                />
-            )}
 
-            {/* Human Verification Status */}
-            {humanVerificationStatus && (
-                <div className="human-verification-status">
-                    <h3>Human Verification Status</h3>
-                    <div className="verification-summary">
-                        <div className={`verification-badge ${humanVerificationStatus.isVerified ? 'verified' : 'unverified'}`}>
-                            {humanVerificationStatus.isVerified ? '✅ Verified Human' : '❌ Not Verified'}
-                        </div>
-                        {humanVerificationStatus.isVerified && (
-                            <div className="verification-details">
-                                <p><strong>Score:</strong> {humanVerificationStatus.score}/100</p>
-                                <p><strong>Verified At:</strong> {new Date(humanVerificationStatus.timestamp * 1000).toLocaleString()}</p>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            )}
 
             {/* Step 4: Gasless Transaction */}
             {showGaslessTransaction && gaslessTransactionData && (
