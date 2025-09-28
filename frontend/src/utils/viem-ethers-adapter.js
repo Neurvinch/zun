@@ -7,7 +7,20 @@ import { useMemo } from 'react';
  * @returns {ethers.providers.JsonRpcProvider}
  */
 export function publicClientToProvider(publicClient) {
+  if (!publicClient) {
+    throw new Error('PublicClient is required');
+  }
+  
   const { chain, transport } = publicClient;
+  
+  if (!chain) {
+    throw new Error('PublicClient chain is required');
+  }
+  
+  if (!transport) {
+    throw new Error('PublicClient transport is required');
+  }
+  
   const network = {
     chainId: chain.id,
     name: chain.name,
@@ -40,7 +53,24 @@ export function useEthersProvider({ chainId }) {
  * @returns {ethers.Signer}
  */
 export function walletClientToSigner(walletClient) {
+  if (!walletClient) {
+    throw new Error('WalletClient is required');
+  }
+  
   const { account, chain, transport } = walletClient;
+  
+  if (!account) {
+    throw new Error('WalletClient account is required');
+  }
+  
+  if (!chain) {
+    throw new Error('WalletClient chain is required');
+  }
+  
+  if (!transport) {
+    throw new Error('WalletClient transport is required');
+  }
+  
   const network = {
     chainId: chain.id,
     name: chain.name,

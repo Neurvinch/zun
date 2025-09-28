@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useAccount } from 'wagmi';
+import { useAccount, usePublicClient, useWalletClient } from 'wagmi';
 import zkProofService from '../services/zkProofService';
 import GaslessTransaction from './GaslessTransaction';
 import ShieldedPool from './ShieldedPool';
@@ -8,6 +8,7 @@ import customIdentityService from '../services/customIdentityService';
 import './UserWallet.css';
 import { ethers } from 'ethers';
 import { getSupportedTokens, getTokenMetadata, getSwapLimits } from '../config/tokens';
+import { publicClientToProvider } from '../utils/viem-ethers-adapter';
 import ZKVaultClient from './ZKVaultClient';
 import FilecoinStorage from './FilecoinStorage';
 import ReceiptManager from './ReceiptManager';
@@ -20,10 +21,10 @@ const ERC20_ABI = [
 ];
  const UserWallet = () => {
    const { address, isConnected, chain } = useAccount();
+   const publicClient = usePublicClient();
+   const { data: walletClient } = useWalletClient();
 
    // State
-   const [provider, setProvider] = useState(null);
-   const [signer, setSigner] = useState(null);
    const [tokenBalances, setTokenBalances] = useState({});
    const [isLoading, setIsLoading] = useState(false);
    const [selectedToken, setSelectedToken] = useState('ETH');
@@ -53,25 +54,20 @@ const ERC20_ABI = [
      } catch (_) { /* noop */ }
    }, [address]);
 
-   const initializeProvider = useCallback(async () => {
-     if (!isConnected || !window.ethereum) return;
-
+   // Convert publicClient to ethers provider for token balance fetching
+   const getEthersProvider = useCallback(() => {
+     if (!publicClient) return null;
      try {
-       const web3Provider = new ethers.BrowserProvider(window.ethereum);
-       const web3Signer = await web3Provider.getSigner();
-
-       setProvider(web3Provider);
-       setSigner(web3Signer);
-
-       console.log('Ethers provider initialized');
+       return publicClientToProvider(publicClient);
      } catch (error) {
-       console.error('Failed to initialize provider:', error);
-       setError('Failed to initialize wallet connection');
+       console.error('Failed to convert publicClient to provider:', error);
+       return null;
      }
-   }, [isConnected]);
+   }, [publicClient]);
 
     // Fetch ETH balance
     const fetchETHBalance = async () => {
+        const provider = getEthersProvider();
         if (!provider || !address) return null;
 
         try {
@@ -90,6 +86,7 @@ const ERC20_ABI = [
 
     // Fetch ERC20 token balance
     const fetchTokenBalance = async (tokenAddress, userAddress) => {
+        const provider = getEthersProvider();
         if (!provider) return null;
 
         try {
@@ -480,27 +477,25 @@ const ERC20_ABI = [
 
     // Effects
     useEffect(() => {
-        if (isConnected) {
-            initializeProvider();
-        }
-    }, [isConnected, initializeProvider]);
-
-    useEffect(() => {
-        if (provider) {
+        if (isConnected && publicClient) {
             fetchTokenBalances();
         }
-    }, [provider, fetchTokenBalances]);
+    }, [isConnected, publicClient, fetchTokenBalances]);
 
     useEffect(() => {
         const initServices = async () => {
-            if (isConnected && address && signer && provider) {
+            if (isConnected && address && walletClient && publicClient) {
                 await initializeZKKey();
-                await customIdentityService.initialize(provider, signer);
-                await checkCustomVerificationStatus();
+                try {
+                    await customIdentityService.initialize(publicClient, walletClient);
+                    await checkCustomVerificationStatus();
+                } catch (error) {
+                    console.error('Failed to initialize custom identity service:', error);
+                }
             }
         };
         initServices();
-    }, [isConnected, address, signer, provider, initializeZKKey, checkCustomVerificationStatus]);
+    }, [isConnected, address, walletClient, publicClient, initializeZKKey, checkCustomVerificationStatus]);
 
     useEffect(() => {
         checkEligibility();
