@@ -4,7 +4,7 @@ import { WagmiProvider } from 'wagmi'
 import { QueryClient,QueryClientProvider } from '@tanstack/react-query'
 import { RainbowKitProvider ,darkTheme } from '@rainbow-me/rainbowkit'
 import { http } from 'wagmi'
-import { sepolia, celoSepolia } from 'viem/chains'
+import { sepolia, monadTestnet,celoSepolia } from 'viem/chains'
 import { getDefaultConfig } from '@rainbow-me/rainbowkit'
 import "@rainbow-me/rainbowkit/styles.css"
 import './index.css'
@@ -18,8 +18,8 @@ const config = getDefaultConfig({
   chains:[sepolia,celoSepolia],
   transports: {
     [sepolia.id] : http("https://worldchain-sepolia.g.alchemy.com/v2/Ljr9rV6foCZ6EDtKt6z-d2Kiy0ahFvLs"),
-    [celoSepolia.id] : http("https://celo-sepolia.g.alchemy.com/v2/EhIhIkZtonHuwFsvqOwkusHPrXFXBc7i")
-
+    [celoSepolia.id] : http("https://celo-sepolia.g.alchemy.com/v2/EhIhIkZtonHuwFsvqOwkusHPrXFXBc7i"),
+    [monadTestnet.id] : http("https://monad-testnet.g.alchemy.com/v2/XUZHgf6fb5Pxtx9YWl6NiJ6841kmpEOX")
   }
 })
   
@@ -35,7 +35,7 @@ createRoot(document.getElementById('root')).render(
   <StrictMode>
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient} >
-        <RainbowKitProvider theme={theme} chains={[sepolia , celoSepolia]}>
+        <RainbowKitProvider theme={theme} chains={[sepolia , celoSepolia,monadTestnet]}>
           <ErrorBoundary>
             <EnhancedApp />
           </ErrorBoundary>
