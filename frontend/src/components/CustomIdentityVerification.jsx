@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useAccount, useProvider, useSigner } from 'wagmi';
+import { useAccount, usePublicClient, useWalletClient } from 'wagmi';
 import { toast } from 'react-hot-toast';
 import customIdentityService, { VerificationMethod, VerificationStatus } from '../services/customIdentityService';
 
 const CustomIdentityVerification = () => {
     const { address, isConnected } = useAccount();
-    const provider = useProvider();
-    const { data: signer } = useSigner();
+    const publicClient = usePublicClient();
+    const { data: walletClient } = useWalletClient();
 
     const [isInitialized, setIsInitialized] = useState(false);
     const [userDetails, setUserDetails] = useState(null);
@@ -31,9 +31,9 @@ const CustomIdentityVerification = () => {
     // Initialize service
     useEffect(() => {
         const initService = async () => {
-            if (isConnected && provider && signer && !isInitialized) {
+            if (isConnected && publicClient && walletClient && !isInitialized) {
                 try {
-                    await customIdentityService.initialize(provider, signer);
+                    await customIdentityService.initialize(publicClient, walletClient);
                     setIsInitialized(true);
                 } catch (error) {
                     console.error('Failed to initialize custom identity service:', error);
@@ -43,7 +43,7 @@ const CustomIdentityVerification = () => {
         };
 
         initService();
-    }, [isConnected, provider, signer, isInitialized]);
+    }, [isConnected, publicClient, walletClient, isInitialized]);
 
     // Load user data
     useEffect(() => {

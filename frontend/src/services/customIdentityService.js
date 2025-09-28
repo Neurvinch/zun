@@ -1,5 +1,6 @@
 import { ethers } from 'ethers';
 import { toast } from 'react-hot-toast';
+import { publicClientToProvider, walletClientToSigner } from '../utils/viem-ethers-adapter';
 
 // Custom Identity Verification ABI (key functions)
 const CUSTOM_IDENTITY_ABI = [
@@ -50,10 +51,14 @@ class CustomIdentityService {
     /**
      * Initialize the service with Web3 provider
      */
-    async initialize(provider, signer) {
+    async initialize(publicClient, walletClient) {
         try {
-            this.provider = provider;
-            this.signer = signer;
+            if (!publicClient || !walletClient) {
+                throw new Error('Public client or wallet client is not available.');
+            }
+
+            this.provider = publicClientToProvider(publicClient);
+            this.signer = walletClientToSigner(walletClient);
             
             if (!this.contractAddress) {
                 throw new Error('Custom Identity Verifier contract address not configured');
@@ -62,7 +67,7 @@ class CustomIdentityService {
             this.contract = new ethers.Contract(
                 this.contractAddress,
                 CUSTOM_IDENTITY_ABI,
-                signer
+                this.signer
             );
 
             console.log('✅ Custom Identity Service initialized');
