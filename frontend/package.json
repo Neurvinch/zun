@@ -23,7 +23,6 @@
     "@selfxyz/core": "^1.1.0-beta.6",
     "@selfxyz/qrcode": "^1.0.15",
     "@tanstack/react-query": "^5.90.2",
-    "@synapsecns/synapse-sdk": "^1.0.0",
     "@filoz/synapse-sdk": "^0.24.0",
     "@lighthouse-web3/sdk": "^0.2.7",
     "axios": "^1.6.0",
