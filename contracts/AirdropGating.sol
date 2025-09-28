@@ -6,20 +6,17 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
-// Self Protocol interface (simplified for deployment)
-interface ISelfVerificationRoot {
-    function verify(bytes memory proof) external view returns (bool);
-}
+import "./CustomIdentityVerification.sol";
 
 /**
  * @title AirdropGating
- * @dev Manages airdrops and eligibility gating using Self Protocol verification
+ * @dev Manages airdrops and eligibility gating using Custom Identity Verification
  * Supports multiple airdrop types: tokens, NFTs, and reputation SBTs
  */
 contract AirdropGating is Ownable, ReentrancyGuard {
     
-    // Self Protocol verification contract
-    ISelfVerificationRoot public immutable selfVerifier;
+    // Custom identity verification contract
+    CustomIdentityVerification public immutable identityVerifier;
     
     // Airdrop types
     enum AirdropType {
@@ -107,8 +104,8 @@ contract AirdropGating is Ownable, ReentrancyGuard {
         string reason
     );
     
-    constructor(address _selfVerifier) {
-        selfVerifier = ISelfVerificationRoot(_selfVerifier);
+    constructor(address _identityVerifier) {
+        identityVerifier = CustomIdentityVerification(_identityVerifier);
     }
     
     /**
@@ -166,14 +163,14 @@ contract AirdropGating is Ownable, ReentrancyGuard {
      * @dev Check if user is eligible for a campaign
      * @param user User address
      * @param campaignId Campaign ID
-     * @param selfProof Self Protocol verification proof
+     * @param verificationProof Custom verification proof (unused in current implementation)
      * @param merkleProof Merkle proof for additional eligibility
      * @return eligible Whether user is eligible
      */
     function checkEligibility(
         address user,
         uint256 campaignId,
-        bytes memory selfProof,
+        bytes memory verificationProof,
         bytes32[] memory merkleProof
     ) external view returns (bool eligible) {
         AirdropCampaign storage campaign = campaigns[campaignId];
@@ -197,10 +194,17 @@ contract AirdropGating is Ownable, ReentrancyGuard {
         
         EligibilityCriteria memory criteria = campaign.criteria;
         
-        // Check Self Protocol verification requirements
+        // Check custom identity verification requirements
         if (criteria.requiresHumanVerification) {
-            // In a real implementation, verify the Self Protocol proof
-            // For now, assume verification is done off-chain
+            if (!identityVerifier.isUserVerified(user)) {
+                return false;
+            }
+            
+            // Check verification score if required
+            (, uint256 verificationScore,,,,,) = identityVerifier.getUserVerificationDetails(user);
+            if (verificationScore < 100) { // Minimum score requirement
+                return false;
+            }
         }
         
         // Check merkle proof if required
@@ -225,16 +229,16 @@ contract AirdropGating is Ownable, ReentrancyGuard {
     /**
      * @dev Claim airdrop reward
      * @param campaignId Campaign ID
-     * @param selfProof Self Protocol verification proof
+     * @param verificationProof Custom verification proof (unused in current implementation)
      * @param merkleProof Merkle proof for additional eligibility
      */
     function claimAirdrop(
         uint256 campaignId,
-        bytes memory selfProof,
+        bytes memory verificationProof,
         bytes32[] memory merkleProof
     ) external nonReentrant {
         require(
-            this.checkEligibility(msg.sender, campaignId, selfProof, merkleProof),
+            this.checkEligibility(msg.sender, campaignId, verificationProof, merkleProof),
             "Not eligible for this airdrop"
         );
         
